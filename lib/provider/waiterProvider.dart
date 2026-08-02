@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../model/menu_item.dart';
 import '../model/order_model.dart';
+import '../model/vendor_model.dart';
 
 class WaiterProvider with ChangeNotifier {
   final FirebaseFirestore db = FirebaseFirestore.instance;
@@ -12,13 +13,27 @@ class WaiterProvider with ChangeNotifier {
   List<MenuItem> menuItems = [];
   List<CartItem> cart = [];
   List<OrderModel> orders = [];
+  List<VendorModel> vendors = [];
 
-  String activeVendor = 'all';
+  String _activeVendor = 'all';
+  String get activeVendor => _activeVendor;
+  
+  set activeVendor(String value) {
+    _activeVendor = value;
+    notifyListeners();
+  }
+
   String tableNumber = '';
   String specialNotes = '';
   bool isSubmitting = false;
 
-  /// 🔥 Load Menu (Realtime like onSnapshot)
+  /// 🔥 Filtered Menu Items based on active vendor (by vendorId)
+  List<MenuItem> get filteredMenuItems {
+    if (_activeVendor == 'all') return menuItems;
+    return menuItems.where((item) => item.vendorId == _activeVendor).toList();
+  }
+
+  /// 🔥 Load Menu (Realtime)
   void listenMenu() {
     db
         .collection('menu_items')
@@ -29,6 +44,16 @@ class WaiterProvider with ChangeNotifier {
           .map((doc) => MenuItem.fromJson(doc.id, doc.data()))
           .toList();
 
+      notifyListeners();
+    });
+  }
+
+  /// 🔥 Load Vendors (Realtime)
+  void listenVendors() {
+    db.collection('vendor').snapshots().listen((snapshot) {
+      vendors = snapshot.docs
+          .map((doc) => VendorModel.fromFirestore(doc.id, doc.data()))
+          .toList();
       notifyListeners();
     });
   }
@@ -44,7 +69,6 @@ class WaiterProvider with ChangeNotifier {
         .snapshots()
         .listen((snapshot) {
       orders = snapshot.docs.map((doc) => OrderModel.fromFirestore(doc)).toList();
-      // Sort by creation time descending
       orders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
       notifyListeners();
     });
@@ -94,7 +118,7 @@ class WaiterProvider with ChangeNotifier {
   double get total =>
       cart.fold(0, (sum, item) => sum + item.price * item.quantity);
 
-  /// 📤 Place Order
+  /// 📤 Place Order using OrderModel
   Future<void> placeOrder(BuildContext context) async {
     if (tableNumber.isEmpty) {
       ScaffoldMessenger.of(context)
@@ -108,22 +132,29 @@ class WaiterProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      await db.collection('orders').add({
-        'waiterId': auth.currentUser?.uid,
-        'tableNumber': tableNumber,
-        'notes': specialNotes,
-        'status': 'pending',
-        'totalAmount': total,
-        'createdAt': FieldValue.serverTimestamp(),
-        'items': cart.map((item) => {
-          'menuItemId': item.id,
-          'vendorId': item.vendorId,
-          'name': item.name,
-          'quantity': item.quantity,
-          'price': item.price,
-          'status': 'pending',
-        }).toList()
-      });
+      final orderItems = cart.map((item) => OrderItem(
+        name: item.name,
+        vendorId: item.vendorId,
+        price: item.price,
+        quantity: item.quantity,
+        status: 'pending',
+      )).toList();
+
+      final newOrder = OrderModel(
+        id: '',
+        waiterId: auth.currentUser?.uid ?? '',
+        tableNumber: tableNumber,
+        status: 'pending',
+        totalAmount: total,
+        notes: specialNotes,
+        createdAt: DateTime.now(),
+        items: orderItems,
+      );
+
+      final orderData = newOrder.toMap();
+      orderData['createdAt'] = FieldValue.serverTimestamp();
+
+      await db.collection('orders').add(orderData);
 
       cart.clear();
       tableNumber = '';
@@ -140,23 +171,23 @@ class WaiterProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  /// ✅ Mark as Delivered / Complete Handover
+  /// ✅ Mark as Delivered
   Future<void> completeHandover(String orderId, String paymentMethod) async {
-    final order = orders.firstWhere((o) => o.id == orderId);
-    
-    final updatedItems = order.items.map((item) => {
-      'name': item.name,
-      'vendorId': item.vendorId,
-      'quantity': item.quantity,
-      'price': item.price,
-      'status': 'delivered',
-    }).toList();
+    try {
+      final order = orders.firstWhere((o) => o.id == orderId);
+      
+      for (var item in order.items) {
+        item.status = 'delivered';
+      }
 
-    await db.collection('orders').doc(orderId).update({
-      'status': 'delivered',
-      'paymentMethod': paymentMethod,
-      'items': updatedItems,
-      'updatedAt': FieldValue.serverTimestamp(),
-    });
+      await db.collection('orders').doc(orderId).update({
+        'status': 'delivered',
+        'paymentMethod': paymentMethod,
+        'items': order.items.map((i) => i.toMap()).toList(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      debugPrint("Handover error: $e");
+    }
   }
 }

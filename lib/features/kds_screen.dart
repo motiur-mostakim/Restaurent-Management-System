@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../provider/kds_provider.dart';
+import '../provider/waiterProvider.dart';
 import '../model/order_model.dart';
+import '../model/vendor_model.dart';
+import 'kitchen_menu_screen.dart';
 
 class KdsScreen extends StatefulWidget {
   const KdsScreen({super.key});
@@ -19,9 +22,16 @@ class _KdsScreenState extends State<KdsScreen> {
   void initState() {
     super.initState();
     Future.microtask(() {
-      final provider = Provider.of<KdsProvider>(context, listen: false);
-      provider.listenOrders();
-      provider.calculateTotalSales();
+      final kdsProvider = Provider.of<KdsProvider>(context, listen: false);
+      final waiterProvider = Provider.of<WaiterProvider>(context, listen: false);
+      
+      waiterProvider.listenVendors();
+      if (kdsProvider.vendorType.isEmpty && waiterProvider.vendors.isNotEmpty) {
+        kdsProvider.setVendor(waiterProvider.vendors.first.id);
+      }
+      
+      kdsProvider.listenOrders();
+      kdsProvider.calculateTotalSales();
     });
   }
 
@@ -32,13 +42,18 @@ class _KdsScreenState extends State<KdsScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<KdsProvider>(context);
+    final waiterProvider = Provider.of<WaiterProvider>(context);
     final screenWidth = MediaQuery.of(context).size.width;
+    final currentVendor = waiterProvider.vendors.firstWhere(
+      (v) => v.id == provider.vendorType,
+      orElse: () => VendorModel(id: provider.vendorType, name: 'Select Vendor', icon: '🍴'),
+    );
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
         title: Text(
-          "Kitchen Display: ${provider.vendorType == 'fast_food' ? 'Tasus' : 'NESCAFÉ'}",
+          "Kitchen Display: ${currentVendor.name}",
           style: const TextStyle(
             fontWeight: FontWeight.bold,
             color: Colors.black,
@@ -80,11 +95,22 @@ class _KdsScreenState extends State<KdsScreen> {
               ),
             ),
             ListTile(
-              leading: const Icon(Icons.kitchen_outlined),
-              title: const Text("Kitchen Menu"),
+              leading: const Icon(Icons.dashboard_outlined),
+              title: const Text("Order Display"),
               selected: true,
               selectedColor: primaryColor,
               onTap: () => Navigator.pop(context),
+            ),
+            ListTile(
+              leading: const Icon(Icons.inventory_2_outlined),
+              title: const Text("Kitchen Menu / Inventory"),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const KitchenMenuScreen()),
+                );
+              },
             ),
             const Spacer(),
             const Divider(),
@@ -125,10 +151,12 @@ class _KdsScreenState extends State<KdsScreen> {
                         activeTab: provider.activeTab,
                         onChanged: (val) => provider.activeTab = val,
                       ),
-                      _VendorSwitcher(
-                        activeVendor: provider.vendorType,
-                        onChanged: (val) => provider.vendorType = val,
-                      ),
+                      if (waiterProvider.vendors.isNotEmpty)
+                        _VendorSwitcher(
+                          vendors: waiterProvider.vendors,
+                          activeVendor: provider.vendorType,
+                          onChanged: (val) => provider.setVendor(val),
+                        ),
                     ],
                   ),
                   Wrap(
@@ -152,59 +180,6 @@ class _KdsScreenState extends State<KdsScreen> {
               ),
             ),
             const SizedBox(height: 32),
-
-            // History Stats
-            if (provider.activeTab == 'history') ...[
-              LayoutBuilder(builder: (context, constraints) {
-                return Wrap(
-                  spacing: 24,
-                  runSpacing: 24,
-                  children: [
-                    SizedBox(
-                      width: constraints.maxWidth > 900
-                          ? (constraints.maxWidth - 48) / 3
-                          : constraints.maxWidth,
-                      child: _MiniStatCard(
-                        label: "Total Revenue",
-                        value: formatCurrency(provider.totalSales),
-                        icon: Icons.trending_up,
-                        iconColor: Colors.green,
-                        iconBg: const Color(0xFFDCFCE7),
-                      ),
-                    ),
-                    SizedBox(
-                      width: constraints.maxWidth > 900
-                          ? (constraints.maxWidth - 48) / 3
-                          : constraints.maxWidth,
-                      child: _MiniStatCard(
-                        label: "Orders Completed",
-                        value: provider.orders.length.toString(),
-                        icon: Icons.check_circle_outline,
-                        iconColor: Colors.blue,
-                        iconBg: const Color(0xFFEFF6FF),
-                      ),
-                    ),
-                    SizedBox(
-                      width: constraints.maxWidth > 900
-                          ? (constraints.maxWidth - 48) / 3
-                          : constraints.maxWidth,
-                      child: _MiniStatCard(
-                        label: "Avg. Order Value",
-                        value: formatCurrency(
-                          provider.orders.isEmpty
-                              ? 0
-                              : provider.totalSales / provider.orders.length,
-                        ),
-                        icon: Icons.attach_money,
-                        iconColor: Colors.orange,
-                        iconBg: const Color(0xFFFFF7ED),
-                      ),
-                    ),
-                  ],
-                );
-              }),
-              const SizedBox(height: 32),
-            ],
 
             // Order Grid
             if (provider.isLoading)
@@ -306,14 +281,6 @@ class _TabItem extends StatelessWidget {
         decoration: BoxDecoration(
           color: isSelected ? Colors.white : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 4,
-                  ),
-                ]
-              : null,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -342,10 +309,15 @@ class _TabItem extends StatelessWidget {
 }
 
 class _VendorSwitcher extends StatelessWidget {
+  final List<VendorModel> vendors;
   final String activeVendor;
   final Function(String) onChanged;
 
-  const _VendorSwitcher({required this.activeVendor, required this.onChanged});
+  const _VendorSwitcher({
+    required this.vendors,
+    required this.activeVendor,
+    required this.onChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -357,18 +329,13 @@ class _VendorSwitcher extends StatelessWidget {
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
-        children: [
-          _VendorItem(
-            label: "TASUS",
-            isSelected: activeVendor == 'fast_food',
-            onTap: () => onChanged('fast_food'),
-          ),
-          _VendorItem(
-            label: "NESCAFÉ",
-            isSelected: activeVendor == 'beverages',
-            onTap: () => onChanged('beverages'),
-          ),
-        ],
+        children: vendors.map((vendor) {
+          return _VendorItem(
+            label: vendor.name.toUpperCase(),
+            isSelected: activeVendor == vendor.id,
+            onTap: () => onChanged(vendor.id),
+          );
+        }).toList(),
       ),
     );
   }
@@ -394,14 +361,6 @@ class _VendorItem extends StatelessWidget {
         decoration: BoxDecoration(
           color: isSelected ? Colors.white : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 4,
-                  ),
-                ]
-              : null,
         ),
         child: Text(
           label,
@@ -457,74 +416,6 @@ class _HeaderStat extends StatelessWidget {
   }
 }
 
-class _MiniStatCard extends StatelessWidget {
-  final String label;
-  final String value;
-  final IconData icon;
-  final Color iconColor;
-  final Color iconBg;
-
-  const _MiniStatCard({
-    required this.label,
-    required this.value,
-    required this.icon,
-    required this.iconColor,
-    required this.iconBg,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: iconBg,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Icon(icon, color: iconColor),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  label,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF94A3B8),
-                  ),
-                ),
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    value,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1E293B),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _KdsOrderCard extends StatelessWidget {
   final OrderModel order;
   final String vendorType;
@@ -551,13 +442,6 @@ class _KdsOrderCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(
@@ -583,58 +467,40 @@ class _KdsOrderCard extends StatelessWidget {
                           color: Color(0xFF94A3B8),
                         ),
                       ),
-                      FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          order.tableNumber,
-                          style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
+                      Text(
+                        order.tableNumber,
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text(
-                        "WAIT TIME",
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF94A3B8),
-                        ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      "WAIT TIME",
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF94A3B8),
                       ),
-                      FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: Alignment.centerRight,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.access_time,
-                              size: 14,
-                              color: Colors.orange,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              "${waitTime}m",
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.orange,
-                              ),
-                            ),
-                          ],
+                    ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.access_time, size: 14, color: Colors.orange),
+                        const SizedBox(width: 4),
+                        Text(
+                          "${waitTime}m",
+                          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.orange),
                         ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -643,30 +509,16 @@ class _KdsOrderCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               color: const Color(0xFFFFF7ED),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(
-                    "SPECIAL INSTRUCTIONS",
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFFC2410C),
-                    ),
-                  ),
-                  Text(
-                    "\"${order.notes}\"",
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      fontStyle: FontStyle.italic,
-                      color: Color(0xFF9A3412),
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
+              child: Text(
+                "\"${order.notes}\"",
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  fontStyle: FontStyle.italic,
+                  color: Color(0xFF9A3412),
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           Expanded(
@@ -675,56 +527,22 @@ class _KdsOrderCard extends StatelessWidget {
               itemCount: vendorItems.length,
               itemBuilder: (context, index) {
                 final item = vendorItems[index];
-                // Find original index in order.items
                 final originalIdx = order.items.indexOf(item);
 
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: Row(
                     children: [
-                      Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: item.status == 'ready'
-                              ? const Color(0xFFDCFCE7)
-                              : const Color(0xFFF1F5F9),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Icon(
-                          item.status == 'ready'
-                              ? Icons.check_circle
-                              : Icons.whatshot,
-                          size: 16,
-                          color: item.status == 'ready'
-                              ? const Color(0xFF22C55E)
-                              : const Color(0xFF94A3B8),
-                        ),
+                      Icon(
+                        item.status == 'ready' ? Icons.check_circle : Icons.whatshot,
+                        size: 16,
+                        color: item.status == 'ready' ? const Color(0xFF22C55E) : const Color(0xFF94A3B8),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              "x${item.quantity} ${item.name}",
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            Text(
-                              item.status.toUpperCase(),
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                                color: _getStatusColor(item.status),
-                              ),
-                            ),
-                          ],
+                        child: Text(
+                          "x${item.quantity} ${item.name}",
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                         ),
                       ),
                       if (item.status != 'ready' && order.status != 'delivered')
@@ -734,15 +552,9 @@ class _KdsOrderCard extends StatelessWidget {
                             item.status == 'pending' ? 'preparing' : 'ready',
                           ),
                           icon: const Icon(Icons.arrow_forward),
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
                           style: IconButton.styleFrom(
                             backgroundColor: const Color(0xFF1E293B),
                             foregroundColor: Colors.white,
-                            padding: const EdgeInsets.all(4),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
                           ),
                         ),
                     ],
@@ -763,19 +575,6 @@ class _KdsOrderCard extends StatelessWidget {
       ),
     );
   }
-
-  Color _getStatusColor(String status) {
-    switch (status) {
-      case 'ready':
-        return const Color(0xFF22C55E);
-      case 'preparing':
-        return const Color(0xFF3B82F6);
-      case 'pending':
-        return const Color(0xFFF59E0B);
-      default:
-        return const Color(0xFF64748B);
-    }
-  }
 }
 
 class _BottomStatus extends StatelessWidget {
@@ -787,80 +586,16 @@ class _BottomStatus extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (status == 'delivered') {
-      return Container(
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-        decoration: BoxDecoration(
-          color: const Color(0xFF1E293B),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: const FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.check_circle, color: Colors.white, size: 16),
-              SizedBox(width: 8),
-              Text(
-                "Handovered",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13,
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
+      return const Center(child: Text("Handovered", style: TextStyle(fontWeight: FontWeight.bold)));
     }
-
     if (allReady) {
       return Container(
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-        decoration: BoxDecoration(
-          color: const Color(0xFF22C55E),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: const FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.check_circle, color: Colors.white, size: 16),
-              SizedBox(width: 8),
-              Text(
-                "Order Ready",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13,
-                ),
-              ),
-            ],
-          ),
-        ),
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(color: const Color(0xFF22C55E), borderRadius: BorderRadius.circular(8)),
+        child: const Center(child: Text("Order Ready", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
       );
     }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-      decoration: BoxDecoration(
-        color: const Color(0xFFE2E8F0),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      alignment: Alignment.center,
-      child: const FittedBox(
-        fit: BoxFit.scaleDown,
-        child: Text(
-          "In Progress",
-          style: TextStyle(
-            color: Color(0xFF64748B),
-            fontWeight: FontWeight.bold,
-            fontSize: 13,
-          ),
-        ),
-      ),
-    );
+    return const Center(child: Text("In Progress", style: TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.bold)));
   }
 }
 
@@ -876,30 +611,9 @@ class _EmptyState extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 100),
         child: Column(
           children: [
-            Icon(
-              activeTab == 'live' ? Icons.restaurant : Icons.history,
-              size: 64,
-              color: Colors.grey[300],
-            ),
+            Icon(activeTab == 'live' ? Icons.restaurant : Icons.history, size: 64, color: Colors.grey[300]),
             const SizedBox(height: 16),
-            Text(
-              activeTab == 'live' ? "Kitchen is clear!" : "No history yet",
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF1E293B),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 40),
-              child: Text(
-                activeTab == 'live'
-                    ? "Incoming orders will appear here in real-time."
-                    : "Completed orders that were handed over will appear here.",
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: Color(0xFF64748B)),
-              ),
-            ),
+            Text(activeTab == 'live' ? "Kitchen is clear!" : "No history yet"),
           ],
         ),
       ),

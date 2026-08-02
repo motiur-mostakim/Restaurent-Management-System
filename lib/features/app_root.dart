@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../model/user_model.dart';
 import 'admin_dashboard_screen.dart';
 import 'login_screen.dart';
 import 'waiter_dashboard.dart';
@@ -38,8 +39,8 @@ class AppRoot extends StatelessWidget {
               return const _GlobalLoading(message: "Setting up profile...");
             }
 
-            final data = roleSnapshot.data!.data() as Map<String, dynamic>;
-            final role = data['role'];
+            final userData = UserModel.fromFirestore(roleSnapshot.data!);
+            final role = userData.role;
 
             switch (role) {
               case 'admin':
@@ -49,6 +50,7 @@ class AppRoot extends StatelessWidget {
               case 'vendor_staff':
                 return const KdsScreen();
               default:
+                FirebaseAuth.instance.signOut();
                 return const LoginScreen();
             }
           },

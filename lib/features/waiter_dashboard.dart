@@ -23,9 +23,12 @@ class _WaiterScreenState extends State<WaiterScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(
-      () => Provider.of<WaiterProvider>(context, listen: false).listenMenu(),
-    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final provider = Provider.of<WaiterProvider>(context, listen: false);
+      provider.listenMenu();
+      provider.listenOrders();
+      provider.listenVendors();
+    });
   }
 
   @override
@@ -42,6 +45,7 @@ class _WaiterScreenState extends State<WaiterScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<WaiterProvider>(context);
+    final filteredItems = provider.filteredMenuItems;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -158,64 +162,72 @@ class _WaiterScreenState extends State<WaiterScreen> {
                           _CategoryButton(
                             label: "All Items",
                             isSelected: provider.activeVendor == 'all',
-                            onTap: () =>
-                                setState(() => provider.activeVendor = 'all'),
+                            onTap: () => provider.activeVendor = 'all',
                           ),
                           const SizedBox(width: 8),
-                          _CategoryButton(
-                            label: "🍔 Tasus",
-                            isSelected: provider.activeVendor == 'fast_food',
-                            onTap: () => setState(
-                              () => provider.activeVendor = 'fast_food',
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          _CategoryButton(
-                            label: "☕ NESCAFÉ",
-                            isSelected: provider.activeVendor == 'beverages',
-                            onTap: () => setState(
-                              () => provider.activeVendor = 'beverages',
-                            ),
-                          ),
+                          ...provider.vendors.map((vendor) {
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 8.0),
+                              child: _CategoryButton(
+                                label: "${vendor.icon} ${vendor.name}",
+                                isSelected: provider.activeVendor == vendor.id,
+                                onTap: () => provider.activeVendor = vendor.id,
+                              ),
+                            );
+                          }).toList(),
                         ],
                       ),
                     ),
                     const SizedBox(height: 16),
                     // Menu Items Grid
-                    GridView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            childAspectRatio: 1.4,
-                            mainAxisSpacing: 12,
-                            crossAxisSpacing: 12,
-                          ),
-                      padding: EdgeInsets.zero,
-                      itemCount: provider.menuItems
-                          .where(
-                            (item) =>
-                                provider.activeVendor == 'all' ||
-                                item.category == provider.activeVendor,
+                    filteredItems.isEmpty
+                        ? Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(40.0),
+                              child: Column(
+                                children: [
+                                  Icon(Icons.no_meals, size: 48, color: Colors.grey[300]),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    "No items available",
+                                    style: TextStyle(color: Colors.grey[400]),
+                                  ),
+                                ],
+                              ),
+                            ),
                           )
-                          .length,
-                      itemBuilder: (context, index) {
-                        final items = provider.menuItems
-                            .where(
-                              (item) =>
-                                  provider.activeVendor == 'all' ||
-                                  item.category == provider.activeVendor,
-                            )
-                            .toList();
-                        final item = items[index];
-                        return _MenuItemCard(
-                          item: item,
-                          onAdd: () => provider.addToCart(item),
-                          formatCurrency: formatCurrency,
-                        );
-                      },
-                    ),
+                        : GridView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 2,
+                                  childAspectRatio: 1.4,
+                                  mainAxisSpacing: 12,
+                                  crossAxisSpacing: 12,
+                                ),
+                            padding: EdgeInsets.zero,
+                            itemCount: filteredItems.length,
+                            itemBuilder: (context, index) {
+                              final item = filteredItems[index];
+                              final vendor = provider.vendors.firstWhere(
+                                (v) => v.id == item.vendorId,
+                                orElse: () => provider.vendors.isNotEmpty ? provider.vendors.first : provider.vendors.first, // This is risky, but we should have vendors
+                              );
+                              // We can safely try to find the vendor
+                              String vendorName = "";
+                              try {
+                                vendorName = provider.vendors.firstWhere((v) => v.id == item.vendorId).name;
+                              } catch (_) {}
+
+                              return _MenuItemCard(
+                                item: item,
+                                vendorName: vendorName,
+                                onAdd: () => provider.addToCart(item),
+                                formatCurrency: formatCurrency,
+                              );
+                            },
+                          ),
                   ],
                 ),
               ),
@@ -453,11 +465,13 @@ class _CategoryButton extends StatelessWidget {
 
 class _MenuItemCard extends StatelessWidget {
   final MenuItem item;
+  final String vendorName;
   final VoidCallback onAdd;
   final String Function(double) formatCurrency;
 
   const _MenuItemCard({
     required this.item,
+    required this.vendorName,
     required this.onAdd,
     required this.formatCurrency,
   });
@@ -481,11 +495,11 @@ class _MenuItemCard extends StatelessWidget {
               children: [
                 Text(
                   item.name,
-                  maxLines: 2,
+                  maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                    fontSize: 14,
                     color: Color(0xFF1E293B),
                   ),
                 ),
@@ -495,14 +509,16 @@ class _MenuItemCard extends StatelessWidget {
                   style: const TextStyle(
                     color: Color(0xFFFF4F18),
                     fontWeight: FontWeight.bold,
-                    fontSize: 15,
+                    fontSize: 14,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  item.category.replaceAll('_', ' ').toUpperCase(),
+                  vendorName.isEmpty ? item.category.replaceAll('_', ' ').toUpperCase() : vendorName.toUpperCase(),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    fontSize: 10,
+                    fontSize: 9,
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF94A3B8),
                     letterSpacing: 0.5,
@@ -518,12 +534,12 @@ class _MenuItemCard extends StatelessWidget {
               onTap: onAdd,
               borderRadius: BorderRadius.circular(25),
               child: Container(
-                width: 40,
-                height: 40,
+                width: 32,
+                height: 32,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(25),
                 ),
-                child: const Icon(Icons.add, color: Color(0xFF94A3B8)),
+                child: const Icon(Icons.add, size: 18, color: Color(0xFF94A3B8)),
               ),
             ),
           ),

@@ -22,9 +22,11 @@ class _WaiterOrdersScreenState extends State<WaiterOrdersScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(
-      () => Provider.of<WaiterProvider>(context, listen: false).listenOrders(),
-    );
+    Future.microtask(() {
+      final provider = Provider.of<WaiterProvider>(context, listen: false);
+      provider.listenOrders();
+      provider.listenVendors();
+    });
   }
 
   String formatCurrency(double amount) {
@@ -181,20 +183,16 @@ class _WaiterOrdersScreenState extends State<WaiterOrdersScreen> {
                           isSelected: vendorFilter == 'all',
                           onTap: () => setState(() => vendorFilter = 'all'),
                         ),
-                        const SizedBox(width: 8),
-                        _FilterChip(
-                          label: "FAST FOOD",
-                          isSelected: vendorFilter == 'fast_food',
-                          onTap: () =>
-                              setState(() => vendorFilter = 'fast_food'),
-                        ),
-                        const SizedBox(width: 8),
-                        _FilterChip(
-                          label: "COFFEE SHOP",
-                          isSelected: vendorFilter == 'beverages',
-                          onTap: () =>
-                              setState(() => vendorFilter = 'beverages'),
-                        ),
+                        ...provider.vendors.map((vendor) {
+                          return Padding(
+                            padding: const EdgeInsets.only(left: 8.0),
+                            child: _FilterChip(
+                              label: vendor.name.toUpperCase(),
+                              isSelected: vendorFilter == vendor.id,
+                              onTap: () => setState(() => vendorFilter = vendor.id),
+                            ),
+                          );
+                        }).toList(),
                       ],
                     ),
                   ),
@@ -817,4 +815,3 @@ class _PaymentModalState extends State<_PaymentModal> {
     );
   }
 }
-

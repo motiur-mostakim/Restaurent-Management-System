@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import '../model/user_model.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -17,7 +18,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
   bool _isLogin = true;
   String? _error;
-  String _selectedRole = 'waiter'; // Default role for new users
+  String _selectedRole = 'waiter';
 
   final _auth = FirebaseAuth.instance;
   final _db = FirebaseFirestore.instance;
@@ -85,7 +86,7 @@ class _LoginScreenState extends State<LoginScreen> {
       // Check if user exists in Firestore
       final userDoc = await _db.collection('users').doc(cred.user!.uid).get();
       if (!userDoc.exists) {
-        // New user through Google, assign selected role
+        // Only sync/set role if it's a new registration
         await _syncUserToFirestore(cred.user!, _selectedRole);
       }
     } catch (e) {
@@ -96,13 +97,18 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _syncUserToFirestore(User user, String role) async {
-    await _db.collection('users').doc(user.uid).set({
-      'role': role,
-      'vendorId': role == 'vendor_staff' ? 'fast_food' : null,
-      'email': user.email,
-      'name': user.displayName ?? role[0].toUpperCase() + role.substring(1),
-      'updatedAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
+    final userModel = UserModel(
+      uid: user.uid,
+      email: user.email ?? '',
+      name: user.displayName ?? role[0].toUpperCase() + role.substring(1),
+      role: role,
+      vendorId: role == 'vendor_staff' ? 'fast_food' : null,
+    );
+    
+    await _db.collection('users').doc(user.uid).set(
+      userModel.toMap(),
+      SetOptions(merge: true),
+    );
   }
 
   @override
@@ -134,25 +140,24 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 40),
 
-                if (!_isLogin) ...[
-                  const Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      "Select your role:",
-                      style: TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w500),
-                    ),
+                // Role selector is now always visible for Google Registration support
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    _isLogin ? "Signing in as:" : "Select your role:",
+                    style: const TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w500),
                   ),
-                  const SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _roleButton('admin', Icons.admin_panel_settings, "Admin"),
-                      _roleButton('waiter', Icons.person, "Waiter"),
-                      _roleButton('vendor_staff', Icons.countertops, "Kitchen"),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _roleButton('admin', Icons.admin_panel_settings, "Admin"),
+                    _roleButton('waiter', Icons.person, "Waiter"),
+                    _roleButton('vendor_staff', Icons.countertops, "Kitchen"),
+                  ],
+                ),
+                const SizedBox(height: 24),
 
                 TextField(
                   controller: _emailController,
@@ -198,11 +203,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   height: 54,
                   child: OutlinedButton.icon(
                     onPressed: _isLoading ? null : _handleGoogleSignIn,
-                    icon: Image.network(
-                      'https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg',
-                      height: 20,
-                      errorBuilder: (context, error, stackTrace) => const Icon(Icons.g_mobiledata, color: Colors.white),
-                    ),
+                    icon: const Icon(Icons.g_mobiledata, color: Colors.white, size: 30),
                     label: const Text("Continue with Google"),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.white,

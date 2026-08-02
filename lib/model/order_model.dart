@@ -39,6 +39,19 @@ class OrderModel {
           .toList(),
     );
   }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'waiterId': waiterId,
+      'tableNumber': tableNumber,
+      'status': status,
+      'totalAmount': totalAmount,
+      'paymentMethod': paymentMethod,
+      'notes': notes,
+      'createdAt': createdAt,
+      'items': items.map((i) => i.toMap()).toList(),
+    };
+  }
 }
 
 class OrderItem {

@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 import '../provider/menu_provider.dart';
 import '../model/menu_item.dart';
 import '../provider/kds_provider.dart';
+import '../provider/waiterProvider.dart';
+import '../model/vendor_model.dart';
 
 class KitchenMenuScreen extends StatefulWidget {
   const KitchenMenuScreen({super.key});
@@ -18,8 +20,10 @@ class _KitchenMenuScreenState extends State<KitchenMenuScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() =>
-        Provider.of<MenuProvider>(context, listen: false).listenItems());
+    Future.microtask(() {
+      Provider.of<MenuProvider>(context, listen: false).listenItems();
+      Provider.of<WaiterProvider>(context, listen: false).listenVendors();
+    });
   }
 
   String formatCurrency(double amount) {
@@ -30,14 +34,20 @@ class _KitchenMenuScreenState extends State<KitchenMenuScreen> {
   Widget build(BuildContext context) {
     final menuProvider = Provider.of<MenuProvider>(context);
     final kdsProvider = Provider.of<KdsProvider>(context);
-    
+    final waiterProvider = Provider.of<WaiterProvider>(context);
+
+    final currentVendor = waiterProvider.vendors.firstWhere(
+      (v) => v.id == kdsProvider.vendorType,
+      orElse: () => VendorModel(id: kdsProvider.vendorType, name: kdsProvider.vendorType.toUpperCase(), icon: '🍴'),
+    );
+
     final vendorItems = menuProvider.items.where((item) => item.vendorId == kdsProvider.vendorType).toList();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
         title: Text(
-          "${kdsProvider.vendorType == 'fast_food' ? 'Tasus' : 'NESCAFÉ'} Inventory",
+          "${currentVendor.name} Inventory",
           style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
         ),
         backgroundColor: Colors.white,

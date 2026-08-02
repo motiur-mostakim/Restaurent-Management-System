@@ -6,9 +6,9 @@ class KdsProvider with ChangeNotifier {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   List<OrderModel> _orders = [];
   double _totalSales = 0;
-  String _vendorType = 'fast_food';
-  String _activeTab = 'live'; // 'live' or 'history'
-  bool _isLoading = true;
+  String _vendorType = '';
+  String _activeTab = 'live';
+  bool _isLoading = false;
 
   List<OrderModel> get orders => _orders;
   double get totalSales => _totalSales;
@@ -23,6 +23,15 @@ class KdsProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  void setVendor(String vendorId) {
+    if (_vendorType != vendorId) {
+      _vendorType = vendorId;
+      listenOrders();
+      calculateTotalSales();
+      notifyListeners();
+    }
+  }
+
   set activeTab(String value) {
     _activeTab = value;
     listenOrders();
@@ -30,6 +39,8 @@ class KdsProvider with ChangeNotifier {
   }
 
   void listenOrders() {
+    if (_vendorType.isEmpty) return; // ভেন্ডর সিলেক্ট না থাকলে থামিয়ে দিবে
+
     _isLoading = true;
     notifyListeners();
 
