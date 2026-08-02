@@ -5,7 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import '../provider/waiterProvider.dart';
 import '../model/menu_item.dart';
-import 'loading_screen.dart';
+import 'login_screen.dart';
 import 'waiter_orders_screen.dart';
 
 class WaiterScreen extends StatefulWidget {
@@ -76,7 +76,7 @@ class _WaiterScreenState extends State<WaiterScreen> {
                   Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const LandingScreen(),
+                      builder: (_) => const LoginScreen(),
                     ),
                         (route) => false,
                   );

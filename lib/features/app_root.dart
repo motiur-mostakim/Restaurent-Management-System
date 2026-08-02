@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'admin_dashboard_screen.dart';
+import 'login_screen.dart';
 import 'waiter_dashboard.dart';
 import 'kds_screen.dart';
-import 'loading_screen.dart';
 
 class AppRoot extends StatelessWidget {
   const AppRoot({super.key});
@@ -14,19 +14,16 @@ class AppRoot extends StatelessWidget {
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, authSnapshot) {
-        // Initial Auth Loading
         if (authSnapshot.connectionState == ConnectionState.waiting) {
           return const _GlobalLoading(message: "");
         }
 
         final user = authSnapshot.data;
 
-        // Not logged in -> Show Landing/Login
         if (user == null) {
-          return const LandingScreen();
+          return const LoginScreen();
         }
 
-        // Logged in -> Fetch Role from Firestore
         return StreamBuilder<DocumentSnapshot>(
           stream: FirebaseFirestore.instance
               .collection('users')
@@ -37,7 +34,6 @@ class AppRoot extends StatelessWidget {
               return const _GlobalLoading(message: "");
             }
 
-            // User document doesn't exist yet (Creation phase)
             if (!roleSnapshot.hasData || !roleSnapshot.data!.exists) {
               return const _GlobalLoading(message: "Setting up profile...");
             }
@@ -45,7 +41,6 @@ class AppRoot extends StatelessWidget {
             final data = roleSnapshot.data!.data() as Map<String, dynamic>;
             final role = data['role'];
 
-            // Route based on role
             switch (role) {
               case 'admin':
                 return const AdminDashboardScreen();
@@ -54,7 +49,7 @@ class AppRoot extends StatelessWidget {
               case 'vendor_staff':
                 return const KdsScreen();
               default:
-                return const LandingScreen();
+                return const LoginScreen();
             }
           },
         );

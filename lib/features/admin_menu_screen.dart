@@ -66,41 +66,39 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
       body: provider.isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Header Actions
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Expanded(
-                        flex: 1,
-                        child: Container(
-                          height: 48,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: const Color(0xFFE2E8F0)),
-                          ),
-                          child: TextField(
-                            onChanged: (value) =>
-                                setState(() => searchQuery = value),
-                            decoration: const InputDecoration(
-                              hintText: "Search dishes...",
-                              border: InputBorder.none,
-                              contentPadding: EdgeInsets.symmetric(
-                                vertical: 12,
-                                horizontal: 6
-                              ),
+                      Container(
+                        height: 48,
+                        width: 100,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                        ),
+                        child: TextField(
+                          onChanged: (value) =>
+                              setState(() => searchQuery = value),
+                          decoration: const InputDecoration(
+                            hintText: "Search dishes...",
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.symmetric(
+                              vertical: 12,
+                              horizontal: 6
                             ),
                           ),
                         ),
                       ),
                       const SizedBox(width: 12),
-                      Expanded(
-                        flex: 2,
-                        child: Container(
+                       Container(
                           height: 48,
+                          width: 130,
                           padding: const EdgeInsets.symmetric(horizontal: 8),
                           decoration: BoxDecoration(
                             color: Colors.white,
@@ -129,24 +127,20 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
                             ),
                           ),
                         ),
-                      ),
                       const SizedBox(width: 12),
-                      Expanded(
-                        flex: 2,
-                        child: ElevatedButton(
-                          onPressed: () => _showItemModal(),
-                          style: ElevatedButton.styleFrom(
-                            minimumSize: const Size(0, 48),
-                            backgroundColor: primaryColor,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            elevation: 0,
-                            padding: const EdgeInsets.symmetric(horizontal: 6),
+                      ElevatedButton(
+                        onPressed: () => _showItemModal(),
+                        style: ElevatedButton.styleFrom(
+                          minimumSize: const Size(80, 48),
+                          backgroundColor: primaryColor,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Text("Add New Item"),
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(horizontal: 6),
                         ),
+                        child: const Text("Add Item"),
                       ),
                     ],
                   ),

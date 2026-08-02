@@ -104,6 +104,7 @@ class _KdsScreenState extends State<KdsScreen> {
           children: [
             // Header Stats & Tabs
             Container(
+              width: double.infinity,
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 color: Colors.white,
