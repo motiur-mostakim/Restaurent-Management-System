@@ -25,7 +25,7 @@ class _BookingsManagementScreenState extends State<BookingsManagementScreen> {
   }
 
   String formatCurrency(double amount) {
-    return NumberFormat.currency(symbol: '\$', decimalDigits: 2).format(amount);
+    return NumberFormat.currency(symbol: '৳', decimalDigits: 2).format(amount);
   }
 
   void _showCreateBookingModal() {

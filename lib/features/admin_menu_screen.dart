@@ -25,7 +25,7 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
   }
 
   String formatCurrency(double amount) {
-    return NumberFormat.currency(symbol: '\$', decimalDigits: 2).format(amount);
+    return NumberFormat.currency(symbol: '৳', decimalDigits: 2).format(amount);
   }
 
   void _showItemModal([MenuItem? item]) {
@@ -433,7 +433,7 @@ class _MenuItemModalState extends State<_MenuItemModal> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const _ModalLabel("PRICE (\$)"),
+                      const _ModalLabel("PRICE (৳)"),
                       TextField(
                         controller: _priceController,
                         keyboardType: TextInputType.number,
