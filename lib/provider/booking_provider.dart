@@ -28,6 +28,10 @@ class BookingProvider with ChangeNotifier {
     await _db.collection('bookings').add(booking.toJson());
   }
 
+  Future<void> updateBooking(BookingModel booking) async {
+    await _db.collection('bookings').doc(booking.id).update(booking.toJson());
+  }
+
   Future<void> deleteBooking(String id) async {
     await _db.collection('bookings').doc(id).delete();
   }

@@ -19,8 +19,7 @@ class _BookingsManagementScreenState extends State<BookingsManagementScreen> {
   void initState() {
     super.initState();
     Future.microtask(
-      () =>
-          Provider.of<BookingProvider>(context, listen: false).listenBookings(),
+      () => Provider.of<BookingProvider>(context, listen: false).listenBookings(),
     );
   }
 
@@ -28,15 +27,18 @@ class _BookingsManagementScreenState extends State<BookingsManagementScreen> {
     return NumberFormat.currency(symbol: '৳', decimalDigits: 2).format(amount);
   }
 
-  void _showCreateBookingModal() {
+  void _showBookingModal([BookingModel? booking]) {
     showDialog(
       context: context,
-      builder: (context) => _CreateBookingModal(
-        onSave: (booking) {
-          Provider.of<BookingProvider>(
-            context,
-            listen: false,
-          ).createBooking(booking);
+      builder: (context) => _BookingModal(
+        booking: booking,
+        onSave: (newBooking) {
+          final provider = Provider.of<BookingProvider>(context, listen: false);
+          if (booking == null) {
+            provider.createBooking(newBooking);
+          } else {
+            provider.updateBooking(newBooking);
+          }
         },
       ),
     );
@@ -50,101 +52,73 @@ class _BookingsManagementScreenState extends State<BookingsManagementScreen> {
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
         title: const Text(
-          "Event Bookings",
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+          "Bookings",
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 22),
         ),
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: false,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: IconButton(
+              onPressed: () => _showBookingModal(),
+              icon: const Icon(Icons.add_circle, color: Color(0xFFFF4F18), size: 32),
+            ),
+          )
+        ],
       ),
       body: provider.isLoading
           ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          : Column(
+              children: [
+                Container(
+                  width: double.infinity,
+                  color: Colors.white,
+                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        "Manage and schedule\nrestaurant events",
+                      Text(
+                        "Manage your restaurant event schedules",
                         style: TextStyle(
-                          color: Color(0xFF64748B),
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      ElevatedButton.icon(
-                        onPressed: _showCreateBookingModal,
-                        icon: const Icon(Icons.add, size: 20),
-                        label: const Text("Create Booking"),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: primaryColor,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 12,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          elevation: 0,
+                          color: Colors.grey[600],
+                          fontSize: 14,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 32),
-                  if (provider.bookings.isEmpty)
-                    Center(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 80),
-                        child: Column(
-                          children: [
-                            Icon(
-                              Icons.calendar_month_outlined,
-                              size: 64,
-                              color: Colors.grey[300],
-                            ),
-                            const SizedBox(height: 16),
-                            const Text(
-                              "No bookings scheduled yet.",
-                              style: TextStyle(color: Color(0xFF94A3B8)),
-                            ),
-                          ],
-                        ),
-                      ),
-                    )
-                  else
-                    LayoutBuilder(
-                      builder: (context, constraints) {
-                        return GridView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: constraints.maxWidth > 900
-                                ? 3
-                                : constraints.maxWidth > 600
-                                ? 2
-                                : 1,
-                            crossAxisSpacing: 24,
-                            mainAxisSpacing: 24,
-                            childAspectRatio: 1.2,
+                ),
+                Expanded(
+                  child: provider.bookings.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.event_busy, size: 64, color: Colors.grey[300]),
+                              const SizedBox(height: 16),
+                              const Text(
+                                "No bookings found",
+                                style: TextStyle(color: Color(0xFF94A3B8), fontSize: 16),
+                              ),
+                            ],
                           ),
+                        )
+                      : ListView.builder(
+                          padding: const EdgeInsets.all(20),
                           itemCount: provider.bookings.length,
                           itemBuilder: (context, index) {
                             final booking = provider.bookings[index];
-
                             return _BookingCard(
                               booking: booking,
                               formatCurrency: formatCurrency,
+                              onEdit: () => _showBookingModal(booking),
                               onDelete: () => provider.deleteBooking(booking.id),
                             );
                           },
-                        );
-                      },
-                    )
-                ],
-              ),
+                        ),
+                ),
+              ],
             ),
     );
   }
@@ -153,49 +127,41 @@ class _BookingsManagementScreenState extends State<BookingsManagementScreen> {
 class _BookingCard extends StatelessWidget {
   final BookingModel booking;
   final String Function(double) formatCurrency;
+  final VoidCallback onEdit;
   final VoidCallback onDelete;
 
   const _BookingCard({
     required this.booking,
     required this.formatCurrency,
+    required this.onEdit,
     required this.onDelete,
   });
 
   @override
   Widget build(BuildContext context) {
-    final bool isConfirmed = booking.status == 'confirmed';
-
     return Container(
+      margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
+            color: Colors.black.withOpacity(0.03),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
       ),
-      clipBehavior: Clip.antiAlias,
-      child: Stack(
+      child: Column(
         children: [
-          Positioned(
-            left: 0,
-            top: 0,
-            bottom: 0,
-            width: 6,
-            child: Container(color: isConfirmed ? Colors.green : Colors.orange),
-          ),
           Padding(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
                       child: Column(
@@ -208,17 +174,22 @@ class _BookingCard extends StatelessWidget {
                               fontSize: 18,
                               color: Color(0xFF0F172A),
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
                           ),
                           const SizedBox(height: 4),
-                          Text(
-                            booking.eventType.toUpperCase(),
-                            style: const TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF94A3B8),
-                              letterSpacing: 1,
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFFF7ED),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              booking.eventType.toUpperCase(),
+                              style: const TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFFC2410C),
+                                letterSpacing: 0.5,
+                              ),
                             ),
                           ),
                         ],
@@ -227,324 +198,288 @@ class _BookingCard extends StatelessWidget {
                     Text(
                       formatCurrency(booking.totalPrice),
                       style: const TextStyle(
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w800,
                         color: Color(0xFFFF4F18),
-                        fontSize: 16,
+                        fontSize: 18,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 24),
-                _InfoRow(
-                  icon: Icons.calendar_today_outlined,
-                  text: DateFormat('PPP p').format(booking.startDate),
-                ),
-                const SizedBox(height: 12),
-                _InfoRow(
-                  icon: Icons.access_time,
-                  text: "Till ${DateFormat('p').format(booking.endDate)}",
-                ),
-                const SizedBox(height: 12),
-                _InfoRow(
-                  icon: Icons.phone_outlined,
-                  text: booking.customerPhone,
-                ),
-                const Spacer(),
+                const SizedBox(height: 20),
                 Row(
                   children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () {},
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          side: const BorderSide(color: Color(0xFFE2E8F0)),
-                        ),
-                        child: const Text(
-                          "Edit Details",
-                          style: TextStyle(
-                            color: Color(0xFF334155),
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    IconButton(
-                      onPressed: () {
-                        showDialog(
+                    _IconInfo(icon: Icons.calendar_today_outlined, text: DateFormat('MMM dd, yyyy').format(booking.startDate)),
+                    const SizedBox(width: 24),
+                    _IconInfo(icon: Icons.access_time, text: "${DateFormat('hh:mm a').format(booking.startDate)} - ${DateFormat('hh:mm a').format(booking.endDate)}"),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                _IconInfo(icon: Icons.phone_outlined, text: booking.customerPhone),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            decoration: const BoxDecoration(
+              color: Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(20),
+                bottomRight: Radius.circular(20),
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton.icon(
+                  onPressed: () {
+                     showDialog(
                           context: context,
                           builder: (context) => AlertDialog(
                             title: const Text("Delete Booking"),
-                            content: const Text(
-                              "Are you sure you want to delete this booking?",
-                            ),
+                            content: const Text("Are you sure you want to delete this booking?"),
                             actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(context),
-                                child: const Text("Cancel"),
-                              ),
+                              TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
                               TextButton(
                                 onPressed: () {
                                   onDelete();
                                   Navigator.pop(context);
                                 },
-                                child: const Text(
-                                  "Delete",
-                                  style: TextStyle(color: Colors.red),
-                                ),
+                                child: const Text("Delete", style: TextStyle(color: Colors.red)),
                               ),
                             ],
                           ),
                         );
-                      },
-                      icon: const Icon(
-                        Icons.delete_outline,
-                        color: Color(0xFFEF4444),
-                        size: 20,
-                      ),
-                      style: IconButton.styleFrom(
-                        backgroundColor: const Color(0xFFFEF2F2),
-                        padding: const EdgeInsets.all(10),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                    ),
-                  ],
+                  },
+                  icon: const Icon(Icons.delete_outline, size: 18, color: Colors.redAccent),
+                  label: const Text("Delete", style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+                ),
+                const SizedBox(width: 12),
+                ElevatedButton(
+                  onPressed: onEdit,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: const Color(0xFF334155),
+                    elevation: 0,
+                    side: const BorderSide(color: Color(0xFFE2E8F0)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  child: const Text("Edit", style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ],
             ),
-          ),
+          )
         ],
       ),
     );
   }
 }
 
-class _InfoRow extends StatelessWidget {
+class _IconInfo extends StatelessWidget {
   final IconData icon;
   final String text;
 
-  const _InfoRow({required this.icon, required this.text});
+  const _IconInfo({required this.icon, required this.text});
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, size: 16, color: const Color(0xFF94A3B8)),
-        const SizedBox(width: 12),
+        Icon(icon, size: 16, color: const Color(0xFF64748B)),
+        const SizedBox(width: 8),
         Text(
           text,
-          style: const TextStyle(color: Color(0xFF475569), fontSize: 14),
+          style: const TextStyle(color: Color(0xFF475569), fontSize: 13, fontWeight: FontWeight.w500),
         ),
       ],
     );
   }
 }
 
-class _CreateBookingModal extends StatefulWidget {
+class _BookingModal extends StatefulWidget {
+  final BookingModel? booking;
   final Function(BookingModel) onSave;
 
-  const _CreateBookingModal({required this.onSave});
+  const _BookingModal({this.booking, required this.onSave});
 
   @override
-  State<_CreateBookingModal> createState() => _CreateBookingModalState();
+  State<_BookingModal> createState() => _BookingModalState();
 }
 
-class _CreateBookingModalState extends State<_CreateBookingModal> {
-  final _nameController = TextEditingController();
-  final _phoneController = TextEditingController();
-  final _priceController = TextEditingController();
-  final String _eventType = 'Party';
-  DateTime _startDate = DateTime.now();
-  DateTime _endDate = DateTime.now().add(const Duration(hours: 2));
+class _BookingModalState extends State<_BookingModal> {
+  late TextEditingController _nameController;
+  late TextEditingController _phoneController;
+  late TextEditingController _priceController;
+  late String _eventType;
+  late DateTime _startDate;
+  late DateTime _endDate;
+
+  final List<String> _eventTypes = [
+    'Party',
+    'Birthday',
+    'Birthday Party',
+    'Wedding',
+    'Corporate',
+    'Seminar',
+    'Meeting',
+    'Other'
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.booking?.customerName ?? '');
+    _phoneController = TextEditingController(text: widget.booking?.customerPhone ?? '');
+    _priceController = TextEditingController(text: widget.booking?.totalPrice.toString() ?? '0');
+    
+    // ডাটাবেস থেকে আসা মানটি যদি লিস্টে না থাকে, তবে সেটি লিস্টে যোগ করা হচ্ছে ক্র্যাশ এড়াতে
+    String initialType = widget.booking?.eventType ?? 'Party';
+    if (!_eventTypes.contains(initialType)) {
+      _eventTypes.add(initialType);
+    }
+    _eventType = initialType;
+
+    _startDate = widget.booking?.startDate ?? DateTime.now();
+    _endDate = widget.booking?.endDate ?? DateTime.now().add(const Duration(hours: 2));
+  }
 
   @override
   Widget build(BuildContext context) {
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      child: Container(
-        width: 500,
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              "New Event Booking",
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF0F172A),
+      child: SingleChildScrollView(
+        child: Container(
+          width: 500,
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                widget.booking == null ? "New Booking" : "Edit Booking",
+                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
               ),
-            ),
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(
-                  child: _InputField(
-                    label: "CUSTOMER NAME",
-                    controller: _nameController,
-                    hint: "John Doe",
+              const SizedBox(height: 24),
+              _InputField(label: "CUSTOMER NAME", controller: _nameController, hint: "Enter name"),
+              const SizedBox(height: 16),
+              _InputField(label: "PHONE NUMBER", controller: _phoneController, hint: "Enter phone number", keyboardType: TextInputType.phone),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const _ModalLabel("EVENT TYPE"),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF8FAFC),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                          ),
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<String>(
+                              isExpanded: true,
+                              value: _eventType,
+                              items: _eventTypes.map((type) => DropdownMenuItem(value: type, child: Text(type))).toList(),
+                              onChanged: (v) => setState(() => _eventType = v!),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _InputField(
-                    label: "PHONE",
-                    controller: _phoneController,
-                    hint: "555-0123",
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _InputField(label: "PRICE (৳)", controller: _priceController, hint: "0.00", keyboardType: TextInputType.number),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              "START DATE & TIME",
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF64748B),
-                letterSpacing: 1,
+                ],
               ),
-            ),
-            const SizedBox(height: 8),
-            _DateTimeSelector(
-              dateTime: _startDate,
-              onTap: () async {
-                final date = await showDatePicker(
-                  context: context,
-                  initialDate: _startDate,
-                  firstDate: DateTime.now(),
-                  lastDate: DateTime.now().add(const Duration(days: 365)),
-                );
-                if (date != null) {
-                  final time = await showTimePicker(
+              const SizedBox(height: 16),
+              const _ModalLabel("START DATE & TIME"),
+              _DateTimeSelector(
+                dateTime: _startDate,
+                onTap: () async {
+                  final date = await showDatePicker(
                     context: context,
-                    initialTime: TimeOfDay.fromDateTime(_startDate),
+                    initialDate: _startDate,
+                    firstDate: DateTime.now().subtract(const Duration(days: 365)),
+                    lastDate: DateTime.now().add(const Duration(days: 365)),
                   );
-                  if (time != null) {
-                    setState(
-                      () => _startDate = DateTime(
-                        date.year,
-                        date.month,
-                        date.day,
-                        time.hour,
-                        time.minute,
-                      ),
+                  if (date != null) {
+                    final time = await showTimePicker(
+                      context: context,
+                      initialTime: TimeOfDay.fromDateTime(_startDate),
                     );
+                    if (time != null) {
+                      setState(() => _startDate = DateTime(date.year, date.month, date.day, time.hour, time.minute));
+                    }
                   }
-                }
-              },
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              "END DATE & TIME",
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF64748B),
-                letterSpacing: 1,
+                },
               ),
-            ),
-            const SizedBox(height: 8),
-            _DateTimeSelector(
-              dateTime: _endDate,
-              onTap: () async {
-                final date = await showDatePicker(
-                  context: context,
-                  initialDate: _endDate,
-                  firstDate: _startDate,
-                  lastDate: DateTime.now().add(const Duration(days: 365)),
-                );
-                if (date != null) {
-                  final time = await showTimePicker(
+              const SizedBox(height: 16),
+              const _ModalLabel("END DATE & TIME"),
+              _DateTimeSelector(
+                dateTime: _endDate,
+                onTap: () async {
+                  final date = await showDatePicker(
                     context: context,
-                    initialTime: TimeOfDay.fromDateTime(_endDate),
+                    initialDate: _endDate,
+                    firstDate: _startDate,
+                    lastDate: DateTime.now().add(const Duration(days: 365)),
                   );
-                  if (time != null) {
-                    setState(
-                      () => _endDate = DateTime(
-                        date.year,
-                        date.month,
-                        date.day,
-                        time.hour,
-                        time.minute,
-                      ),
+                  if (date != null) {
+                    final time = await showTimePicker(
+                      context: context,
+                      initialTime: TimeOfDay.fromDateTime(_endDate),
                     );
+                    if (time != null) {
+                      setState(() => _endDate = DateTime(date.year, date.month, date.day, time.hour, time.minute));
+                    }
                   }
-                }
-              },
-            ),
-            const SizedBox(height: 16),
-            _InputField(
-              label: "TOTAL PRICE",
-              controller: _priceController,
-              hint: "0.00",
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 32),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      side: const BorderSide(color: Color(0xFFE2E8F0)),
-                    ),
-                    child: const Text(
-                      "Cancel",
-                      style: TextStyle(
-                        color: Color(0xFF64748B),
-                        fontWeight: FontWeight.bold,
-                      ),
+                },
+              ),
+              const SizedBox(height: 32),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text("Cancel", style: TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.bold)),
                     ),
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      final booking = BookingModel(
-                        id: '',
-                        customerName: _nameController.text,
-                        customerPhone: _phoneController.text,
-                        eventType: _eventType,
-                        startDate: _startDate,
-                        endDate: _endDate,
-                        status: 'confirmed',
-                        totalPrice:
-                            double.tryParse(_priceController.text) ?? 0.0,
-                      );
-                      widget.onSave(booking);
-                      Navigator.pop(context);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFF4F18),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 2,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        final booking = BookingModel(
+                          id: widget.booking?.id ?? '',
+                          customerName: _nameController.text,
+                          customerPhone: _phoneController.text,
+                          eventType: _eventType,
+                          startDate: _startDate,
+                          endDate: _endDate,
+                          status: widget.booking?.status ?? 'confirmed',
+                          totalPrice: double.tryParse(_priceController.text) ?? 0.0,
+                        );
+                        widget.onSave(booking);
+                        Navigator.pop(context);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFF4F18),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        elevation: 0,
                       ),
-                      elevation: 0,
-                    ),
-                    child: const Text(
-                      "Create Booking",
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      child: Text(widget.booking == null ? "Create Booking" : "Save Changes", style: const TextStyle(fontWeight: FontWeight.bold)),
                     ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -569,16 +504,7 @@ class _InputField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF64748B),
-            letterSpacing: 1,
-          ),
-        ),
-        const SizedBox(height: 8),
+        _ModalLabel(label),
         TextField(
           controller: controller,
           keyboardType: keyboardType,
@@ -586,18 +512,10 @@ class _InputField extends StatelessWidget {
             hintText: hint,
             filled: true,
             fillColor: const Color(0xFFF8FAFC),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 12,
-            ),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFFF4F18))),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           ),
         ),
       ],
@@ -615,8 +533,9 @@ class _DateTimeSelector extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
           color: const Color(0xFFF8FAFC),
           borderRadius: BorderRadius.circular(12),
@@ -625,17 +544,26 @@ class _DateTimeSelector extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              DateFormat('PPP p').format(dateTime),
-              style: const TextStyle(color: Color(0xFF0F172A)),
-            ),
-            const Icon(
-              Icons.calendar_today,
-              size: 18,
-              color: Color(0xFF94A3B8),
-            ),
+            Text(DateFormat('MMM dd, yyyy - hh:mm a').format(dateTime), style: const TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.w500)),
+            const Icon(Icons.calendar_month, size: 20, color: Color(0xFFFF4F18)),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _ModalLabel extends StatelessWidget {
+  final String text;
+  const _ModalLabel(this.text);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Text(
+        text,
+        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF94A3B8), letterSpacing: 1),
       ),
     );
   }
