@@ -60,6 +60,7 @@ class OrderItem {
   double price;
   int quantity;
   String status;
+  String? image;
 
   OrderItem({
     required this.name,
@@ -67,6 +68,7 @@ class OrderItem {
     required this.price,
     required this.quantity,
     required this.status,
+    this.image,
   });
 
   factory OrderItem.fromMap(Map<String, dynamic> data) {
@@ -76,6 +78,7 @@ class OrderItem {
       price: (data['price'] as num?)?.toDouble() ?? 0.0,
       quantity: data['quantity'] ?? 0,
       status: data['status'] ?? 'pending',
+      image: data['image'],
     );
   }
 
@@ -86,6 +89,7 @@ class OrderItem {
       'price': price,
       'quantity': quantity,
       'status': status,
+      'image': image,
     };
   }
 }

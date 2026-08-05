@@ -542,30 +542,15 @@ class _AdminProfileViewState extends State<_AdminProfileView> {
                       ),
                       // Modern decorative background elements
                       Positioned(
-                        top: -100,
-                        right: -100,
+                        top: -80,
+                        right: -80,
                         child: Container(
-                          width: 300,
-                          height: 300,
+                          width: 250,
+                          height: 250,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             gradient: RadialGradient(
-                              colors: [const Color(0xFFFF4F18).withOpacity(0.15), Colors.transparent],
-                            ),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        child: Container(
-                          height: 100,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [Colors.transparent, const Color(0xFFF8FAFC).withOpacity(0.5)],
+                              colors: [const Color(0xFFFF4F18).withOpacity(0.12), Colors.transparent],
                             ),
                           ),
                         ),
@@ -585,8 +570,8 @@ class _AdminProfileViewState extends State<_AdminProfileView> {
                                     border: Border.all(color: const Color(0xFFFF4F18).withOpacity(0.5), width: 2),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: const Color(0xFFFF4F18).withOpacity(0.2),
-                                        blurRadius: 20,
+                                        color: const Color(0xFFFF4F18).withOpacity(0.25),
+                                        blurRadius: 25,
                                         spreadRadius: 5,
                                       ),
                                     ],

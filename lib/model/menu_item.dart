@@ -5,6 +5,7 @@ class MenuItem {
   String vendorId;
   String category;
   bool available;
+  String? image;
 
   MenuItem({
     required this.id,
@@ -13,6 +14,7 @@ class MenuItem {
     required this.vendorId,
     required this.category,
     this.available = true,
+    this.image,
   });
 
   factory MenuItem.fromJson(String id, Map<String, dynamic> json) {
@@ -23,6 +25,7 @@ class MenuItem {
       vendorId: json['vendorId'] ?? '',
       category: json['category'] ?? '',
       available: json['available'] ?? true,
+      image: json['image'],
     );
   }
 
@@ -33,6 +36,7 @@ class MenuItem {
       'vendorId': vendorId,
       'category': category,
       'available': available,
+      'image': image,
     };
   }
 }
@@ -47,6 +51,7 @@ class CartItem extends MenuItem {
     required super.vendorId,
     required super.category,
     super.available,
+    super.image,
     this.quantity = 1,
   });
 }

@@ -87,6 +87,7 @@ class WaiterProvider with ChangeNotifier {
         price: item.price,
         vendorId: item.vendorId,
         category: item.category,
+        image: item.image,
       ));
     }
 
@@ -119,7 +120,7 @@ class WaiterProvider with ChangeNotifier {
       cart.fold(0, (sum, item) => sum + item.price * item.quantity);
 
   /// 📤 Place Order using OrderModel
-  Future<void> placeOrder(BuildContext context) async {
+  Future<void> placeOrder(BuildContext context, {String? paymentMethod}) async {
     if (tableNumber.isEmpty) {
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text("Please enter table number")));
@@ -138,6 +139,7 @@ class WaiterProvider with ChangeNotifier {
         price: item.price,
         quantity: item.quantity,
         status: 'pending',
+        image: item.image,
       )).toList();
 
       final newOrder = OrderModel(
@@ -146,6 +148,7 @@ class WaiterProvider with ChangeNotifier {
         tableNumber: tableNumber,
         status: 'pending',
         totalAmount: total,
+        paymentMethod: paymentMethod,
         notes: specialNotes,
         createdAt: DateTime.now(),
         items: orderItems,
@@ -172,7 +175,7 @@ class WaiterProvider with ChangeNotifier {
   }
 
   /// ✅ Mark as Delivered
-  Future<void> completeHandover(String orderId, String paymentMethod) async {
+  Future<void> completeHandover(String orderId, String? paymentMethod) async {
     try {
       final order = orders.firstWhere((o) => o.id == orderId);
       
@@ -182,7 +185,7 @@ class WaiterProvider with ChangeNotifier {
 
       await db.collection('orders').doc(orderId).update({
         'status': 'delivered',
-        'paymentMethod': paymentMethod,
+        'paymentMethod': paymentMethod ?? order.paymentMethod,
         'items': order.items.map((i) => i.toMap()).toList(),
         'updatedAt': FieldValue.serverTimestamp(),
       });

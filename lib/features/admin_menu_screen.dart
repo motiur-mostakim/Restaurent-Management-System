@@ -196,16 +196,24 @@ class _MenuItemCard extends StatelessWidget {
             Row(
               children: [
                 Container(
-                  width: 50,
-                  height: 50,
+                  width: 70,
+                  height: 70,
                   decoration: BoxDecoration(
                     color: const Color(0xFFF8FAFC),
                     borderRadius: BorderRadius.circular(12),
+                    image: item.image != null && item.image!.isNotEmpty
+                        ? DecorationImage(
+                            image: NetworkImage(item.image!),
+                            fit: BoxFit.cover,
+                          )
+                        : null,
                   ),
-                  child: Icon(
-                    item.vendorId == 'fast_food' ? Icons.fastfood : Icons.local_cafe,
-                    color: const Color(0xFFFF4F18),
-                  ),
+                  child: item.image == null || item.image!.isEmpty
+                      ? Icon(
+                          item.vendorId == 'fast_food' ? Icons.fastfood : Icons.local_cafe,
+                          color: const Color(0xFFFF4F18),
+                        )
+                      : null,
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -318,6 +326,7 @@ class _MenuItemModal extends StatefulWidget {
 class _MenuItemModalState extends State<_MenuItemModal> {
   late TextEditingController _nameController;
   late TextEditingController _priceController;
+  late TextEditingController _imageController;
   late String _vendorId;
   late bool _available;
 
@@ -328,131 +337,149 @@ class _MenuItemModalState extends State<_MenuItemModal> {
     _priceController = TextEditingController(
       text: widget.item?.price.toString() ?? '0',
     );
+    _imageController = TextEditingController(text: widget.item?.image ?? '');
     _vendorId = widget.item?.vendorId ?? 'fast_food';
     _available = widget.item?.available ?? true;
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _priceController.dispose();
+    _imageController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      child: Container(
-        width: 450,
-        padding: const EdgeInsets.all(28),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              widget.item == null ? 'Add New Dish' : 'Edit Dish',
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 24),
-            const _ModalLabel("DISH NAME"),
-            TextField(
-              controller: _nameController,
-              decoration: _inputDecoration("e.g. Classic Burger"),
-            ),
-            const SizedBox(height: 20),
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const _ModalLabel("PRICE (৳)"),
-                      TextField(
-                        controller: _priceController,
-                        keyboardType: TextInputType.number,
-                        decoration: _inputDecoration("0.00"),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const _ModalLabel("VENDOR"),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF8FAFC),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: const Color(0xFFE2E8F0)),
+      child: SingleChildScrollView(
+        child: Container(
+          width: 450,
+          padding: const EdgeInsets.all(28),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                widget.item == null ? 'Add New Dish' : 'Edit Dish',
+                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 24),
+              const _ModalLabel("DISH NAME"),
+              TextField(
+                controller: _nameController,
+                decoration: _inputDecoration("e.g. Classic Burger"),
+              ),
+              const SizedBox(height: 20),
+              const _ModalLabel("IMAGE URL"),
+              TextField(
+                controller: _imageController,
+                decoration: _inputDecoration("https://example.com/image.jpg"),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const _ModalLabel("PRICE (৳)"),
+                        TextField(
+                          controller: _priceController,
+                          keyboardType: TextInputType.number,
+                          decoration: _inputDecoration("0.00"),
                         ),
-                        child: DropdownButtonHideUnderline(
-                          child: DropdownButton<String>(
-                            isExpanded: true,
-                            value: _vendorId,
-                            items: const [
-                              DropdownMenuItem(value: 'fast_food', child: Text("Tasus")),
-                              DropdownMenuItem(value: 'beverages', child: Text("NESCAFÉ")),
-                            ],
-                            onChanged: (v) => setState(() => _vendorId = v!),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const _ModalLabel("VENDOR"),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF8FAFC),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                          ),
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<String>(
+                              isExpanded: true,
+                              value: _vendorId,
+                              items: const [
+                                DropdownMenuItem(value: 'fast_food', child: Text("Tasus")),
+                                DropdownMenuItem(value: 'beverages', child: Text("NESCAFÉ")),
+                              ],
+                              onChanged: (v) => setState(() => _vendorId = v!),
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            Row(
-              children: [
-                Checkbox(
-                  value: _available,
-                  onChanged: (v) => setState(() => _available = v!),
-                  activeColor: const Color(0xFFFF4F18),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                ),
-                const Text(
-                  "Available for orders",
-                  style: TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF334155)),
-                ),
-              ],
-            ),
-            const SizedBox(height: 32),
-            Row(
-              children: [
-                Expanded(
-                  child: TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text("Cancel",
-                        style: TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.bold)),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  flex: 2,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      final newItem = MenuItem(
-                        id: widget.item?.id ?? '',
-                        name: _nameController.text,
-                        price: double.tryParse(_priceController.text) ?? 0,
-                        vendorId: _vendorId,
-                        category: _vendorId,
-                        available: _available,
-                      );
-                      widget.onSave(newItem);
-                      Navigator.pop(context);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFF4F18),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      elevation: 0,
+                      ],
                     ),
-                    child: Text(widget.item == null ? "Create Dish" : "Save Changes"),
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Checkbox(
+                    value: _available,
+                    onChanged: (v) => setState(() => _available = v!),
+                    activeColor: const Color(0xFFFF4F18),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                  ),
+                  const Text(
+                    "Available for orders",
+                    style: TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF334155)),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 32),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text("Cancel",
+                          style: TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 2,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        final newItem = MenuItem(
+                          id: widget.item?.id ?? '',
+                          name: _nameController.text,
+                          price: double.tryParse(_priceController.text) ?? 0,
+                          vendorId: _vendorId,
+                          category: _vendorId,
+                          available: _available,
+                          image: _imageController.text,
+                        );
+                        widget.onSave(newItem);
+                        Navigator.pop(context);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFF4F18),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        elevation: 0,
+                      ),
+                      child: Text(widget.item == null ? "Create Dish" : "Save Changes"),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
