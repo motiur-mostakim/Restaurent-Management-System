@@ -7,6 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../provider/dashboard_provider.dart';
 import 'admin_menu_screen.dart';
 import 'bookings_management_screen.dart';
+import 'profile_details_screen.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -461,9 +462,14 @@ class _AdminAnalyticsViewState extends State<_AdminAnalyticsView> {
   }
 }
 
-class _AdminProfileView extends StatelessWidget {
+class _AdminProfileView extends StatefulWidget {
   const _AdminProfileView();
 
+  @override
+  State<_AdminProfileView> createState() => _AdminProfileViewState();
+}
+
+class _AdminProfileViewState extends State<_AdminProfileView> {
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
@@ -501,7 +507,12 @@ class _AdminProfileView extends StatelessWidget {
             _ProfileMenuItem(
               icon: Icons.person_outline,
               title: "Account Details",
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ProfileDetailsScreen()),
+                ).then((_) => setState(() {})); // Refresh profile view after update
+              },
             ),
             _ProfileMenuItem(
               icon: Icons.notifications_none,
