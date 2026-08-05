@@ -7,8 +7,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../provider/dashboard_provider.dart';
 import 'admin_menu_screen.dart';
 import 'bookings_management_screen.dart';
-import 'waiter_dashboard.dart';
-import 'kds_screen.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -18,6 +16,68 @@ class AdminDashboardScreen extends StatefulWidget {
 }
 
 class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
+  int _selectedIndex = 0;
+
+  final List<Widget> _pages = [
+    const _AdminAnalyticsView(),
+    const AdminMenuScreen(),
+    const BookingsManagementScreen(),
+    const _AdminProfileView(),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: _pages,
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+        type: BottomNavigationBarType.fixed,
+        selectedItemColor: const Color(0xFFFF4F18),
+        unselectedItemColor: const Color(0xFF64748B),
+        showUnselectedLabels: true,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.dashboard_outlined),
+            activeIcon: Icon(Icons.dashboard),
+            label: 'Dashboard',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.restaurant_menu_outlined),
+            activeIcon: Icon(Icons.restaurant_menu),
+            label: 'Menu',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.calendar_month_outlined),
+            activeIcon: Icon(Icons.calendar_month),
+            label: 'Bookings',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            activeIcon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AdminAnalyticsView extends StatefulWidget {
+  const _AdminAnalyticsView();
+
+  @override
+  State<_AdminAnalyticsView> createState() => _AdminAnalyticsViewState();
+}
+
+class _AdminAnalyticsViewState extends State<_AdminAnalyticsView> {
   final Color primaryColor = const Color(0xFFFF4F18);
   final Color secondaryColor = const Color(0xFF1E293B);
 
@@ -30,7 +90,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   }
 
   String formatCurrency(double amount) {
-    return NumberFormat.currency(symbol: '\$', decimalDigits: 2).format(amount);
+    return NumberFormat.currency(symbol: '৳', decimalDigits: 2).format(amount);
   }
 
   @override
@@ -47,103 +107,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: false,
-        iconTheme: const IconThemeData(color: Colors.black),
-        actions: [
-          IconButton(
-            onPressed: () => FirebaseAuth.instance.signOut(),
-            icon: const Icon(Icons.logout, color: Color(0xFF64748B)),
-          ),
-        ],
-      ),
-      drawer: Drawer(
-        child: Column(
-          children: [
-            DrawerHeader(
-              decoration: BoxDecoration(color: primaryColor),
-              child: const Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.restaurant, color: Colors.white, size: 48),
-                    SizedBox(height: 12),
-                    Text(
-                      "Admin Panel",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.dashboard_outlined),
-              title: const Text("Dashboard"),
-              selected: true,
-              selectedColor: primaryColor,
-              onTap: () => Navigator.pop(context),
-            ),
-            ListTile(
-              leading: const Icon(Icons.restaurant_menu),
-              title: const Text("Menu Management"),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const AdminMenuScreen(),
-                  ),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.calendar_month_outlined),
-              title: const Text("Event Bookings"),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const BookingsManagementScreen(),
-                  ),
-                );
-              },
-            ),
-            const Divider(),
-            ListTile(
-              leading: const Icon(Icons.add_shopping_cart),
-              title: const Text("Waiter App"),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const WaiterScreen()),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.kitchen_outlined),
-              title: const Text("Kitchen (KDS)"),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const KdsScreen()),
-                );
-              },
-            ),
-            const Spacer(),
-            const Divider(),
-            ListTile(
-              leading: const Icon(Icons.logout),
-              title: const Text("Logout"),
-              onTap: () => FirebaseAuth.instance.signOut(),
-            ),
-            const SizedBox(height: 20),
-          ],
-        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -179,14 +142,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   trend: "-2.1%",
                   positive: false,
                   icon: Icons.calendar_today,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const BookingsManagementScreen(),
-                      ),
-                    );
-                  },
                 ),
                 _StatCard(
                   label: "Avg. Order Value",
@@ -201,7 +156,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 ),
               ],
             ),
-
+            const SizedBox(height: 24),
             // Revenue by Vendor Chart
             Container(
               padding: const EdgeInsets.all(20),
@@ -273,7 +228,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                               reservedSize: 40,
                               getTitlesWidget: (value, meta) {
                                 return Text(
-                                  '\$${value.toInt()}',
+                                  '৳${value.toInt()}',
                                   style: const TextStyle(
                                     color: Color(0xFF94A3B8),
                                     fontSize: 10,
@@ -335,7 +290,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               ),
             ),
             const SizedBox(height: 24),
-
             // Vendor Performance
             Container(
               padding: const EdgeInsets.all(20),
@@ -371,7 +325,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               ),
             ),
             const SizedBox(height: 24),
-
             // Recent Orders
             Container(
               decoration: BoxDecoration(
@@ -489,6 +442,130 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _AdminProfileView extends StatelessWidget {
+  const _AdminProfileView();
+
+  @override
+  Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8FAFC),
+      appBar: AppBar(
+        title: const Text(
+          "Profile",
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: false,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          children: [
+            const CircleAvatar(
+              radius: 50,
+              backgroundColor: Color(0xFFFF4F18),
+              child: Icon(Icons.person, size: 50, color: Colors.white),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              user?.displayName ?? "Admin User",
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              user?.email ?? "admin@restaurant.com",
+              style: const TextStyle(color: Color(0xFF64748B)),
+            ),
+            const SizedBox(height: 32),
+            _ProfileMenuItem(
+              icon: Icons.person_outline,
+              title: "Account Details",
+              onTap: () {},
+            ),
+            _ProfileMenuItem(
+              icon: Icons.notifications_none,
+              title: "Notifications",
+              onTap: () {},
+            ),
+            _ProfileMenuItem(
+              icon: Icons.security,
+              title: "Security",
+              onTap: () {},
+            ),
+            const Divider(height: 40),
+            _ProfileMenuItem(
+              icon: Icons.logout,
+              title: "Logout",
+              textColor: Colors.red,
+              iconColor: Colors.red,
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text("Logout"),
+                    content: const Text("Are you sure you want to logout?"),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text("Cancel"),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          FirebaseAuth.instance.signOut();
+                        },
+                        child: const Text(
+                          "Logout",
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ProfileMenuItem extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final VoidCallback onTap;
+  final Color? textColor;
+  final Color? iconColor;
+
+  const _ProfileMenuItem({
+    required this.icon,
+    required this.title,
+    required this.onTap,
+    this.textColor,
+    this.iconColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      onTap: onTap,
+      leading: Icon(icon, color: iconColor ?? const Color(0xFF1E293B)),
+      title: Text(
+        title,
+        style: TextStyle(
+          fontWeight: FontWeight.w500,
+          color: textColor ?? const Color(0xFF1E293B),
+        ),
+      ),
+      trailing: const Icon(Icons.chevron_right, size: 20, color: Color(0xFF94A3B8)),
+      contentPadding: const EdgeInsets.symmetric(vertical: 4),
     );
   }
 }
@@ -676,7 +753,7 @@ class _VendorProgress extends StatelessWidget {
               ],
             ),
             Text(
-              NumberFormat.currency(symbol: '\$').format(revenue),
+              NumberFormat.currency(symbol: '৳').format(revenue),
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
           ],
