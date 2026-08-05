@@ -5,6 +5,7 @@ class UserModel {
   final String email;
   final String name;
   final String role;
+  final String? designation;
   final String? phone;
   final String? vendorId;
   final DateTime? updatedAt;
@@ -14,6 +15,7 @@ class UserModel {
     required this.email,
     required this.name,
     required this.role,
+    this.designation,
     this.phone,
     this.vendorId,
     this.updatedAt,
@@ -26,6 +28,7 @@ class UserModel {
       email: data['email'] ?? '',
       name: data['name'] ?? '',
       role: data['role'] ?? 'waiter',
+      designation: data['designation'],
       phone: data['phone'],
       vendorId: data['vendorId'],
       updatedAt: (data['updatedAt'] as Timestamp?)?.toDate(),
@@ -37,6 +40,7 @@ class UserModel {
       'email': email,
       'name': name,
       'role': role,
+      'designation': designation,
       'phone': phone,
       'vendorId': vendorId,
       'updatedAt': FieldValue.serverTimestamp(),

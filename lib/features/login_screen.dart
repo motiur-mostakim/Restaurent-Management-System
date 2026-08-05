@@ -14,6 +14,8 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _nameController = TextEditingController();
+  final _designationController = TextEditingController();
 
   bool _isLoading = false;
   bool _isLogin = true;
@@ -28,12 +30,19 @@ class _LoginScreenState extends State<LoginScreen> {
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _nameController.dispose();
+    _designationController.dispose();
     super.dispose();
   }
 
   Future<void> _handleEmailAuth() async {
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       setState(() => _error = "Please fill in all fields");
+      return;
+    }
+
+    if (!_isLogin && (_nameController.text.isEmpty || _designationController.text.isEmpty)) {
+      setState(() => _error = "Please fill in Name and Designation");
       return;
     }
 
@@ -50,11 +59,17 @@ class _LoginScreenState extends State<LoginScreen> {
           password: _passwordController.text.trim(),
         );
       } else {
+        // Only Admin can sign up from this screen
         cred = await _auth.createUserWithEmailAndPassword(
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
         );
-        await _syncUserToFirestore(cred.user!, _selectedRole);
+        await _syncUserToFirestore(
+          cred.user!,
+          'admin',
+          name: _nameController.text.trim(),
+          designation: _designationController.text.trim(),
+        );
       }
     } on FirebaseAuthException catch (e) {
       setState(() => _error = e.message);
@@ -65,43 +80,13 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  Future<void> _handleGoogleSignIn() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
-
-    try {
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) throw "Google sign-in cancelled";
-
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-
-      final cred = await _auth.signInWithCredential(credential);
-
-      // Check if user exists in Firestore
-      final userDoc = await _db.collection('users').doc(cred.user!.uid).get();
-      if (!userDoc.exists) {
-        // Only sync/set role if it's a new registration
-        await _syncUserToFirestore(cred.user!, _selectedRole);
-      }
-    } catch (e) {
-      setState(() => _error = e.toString());
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-  Future<void> _syncUserToFirestore(User user, String role) async {
+  Future<void> _syncUserToFirestore(User user, String role, {String? name, String? designation}) async {
     final userModel = UserModel(
       uid: user.uid,
       email: user.email ?? '',
-      name: user.displayName ?? role[0].toUpperCase() + role.substring(1),
+      name: name ?? user.displayName ?? role[0].toUpperCase() + role.substring(1),
       role: role,
+      designation: designation,
       vendorId: role == 'vendor_staff' ? 'fast_food' : null,
     );
     
@@ -140,24 +125,41 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 40),
 
-                // Role selector is now always visible for Google Registration support
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    _isLogin ? "Signing in as:" : "Select your role:",
-                    style: const TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w500),
+                // Role selector only shown for Sign In
+                if (_isLogin) ...[
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "Signing in as:",
+                      style: const TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w500),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _roleButton('admin', Icons.admin_panel_settings, "Admin"),
-                    _roleButton('waiter', Icons.person, "Waiter"),
-                    _roleButton('vendor_staff', Icons.countertops, "Kitchen"),
-                  ],
-                ),
-                const SizedBox(height: 24),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _roleButton('admin', Icons.admin_panel_settings, "Admin"),
+                      _roleButton('waiter', Icons.person, "Waiter"),
+                      _roleButton('vendor_staff', Icons.countertops, "Kitchen"),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                ],
+
+                if (!_isLogin) ...[
+                  TextField(
+                    controller: _nameController,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: _inputDecoration("Full Name", Icons.person_outline),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _designationController,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: _inputDecoration("Designation", Icons.work_outline),
+                  ),
+                  const SizedBox(height: 16),
+                ],
 
                 TextField(
                   controller: _emailController,
@@ -191,25 +193,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                           )
                         : Text(
-                            _isLogin ? "Sign In" : "Create Account",
+                            _isLogin ? "Sign In" : "Create Admin Account",
                             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                           ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                SizedBox(
-                  width: double.infinity,
-                  height: 54,
-                  child: OutlinedButton.icon(
-                    onPressed: _isLoading ? null : _handleGoogleSignIn,
-                    icon: const Icon(Icons.g_mobiledata, color: Colors.white, size: 30),
-                    label: const Text("Continue with Google"),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      side: const BorderSide(color: Colors.white24),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
                   ),
                 ),
 
@@ -223,7 +209,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       children: [
                         TextSpan(text: _isLogin ? "Don't have an account? " : "Already have an account? "),
                         TextSpan(
-                          text: _isLogin ? "Register" : "Sign In",
+                          text: _isLogin ? "Register as Admin" : "Sign In",
                           style: const TextStyle(color: Color(0xFFFF4F18), fontWeight: FontWeight.bold),
                         ),
                       ],

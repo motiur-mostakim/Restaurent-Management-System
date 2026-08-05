@@ -9,6 +9,7 @@ import '../provider/dashboard_provider.dart';
 import 'admin_menu_screen.dart';
 import 'bookings_management_screen.dart';
 import 'profile_details_screen.dart';
+import 'user_management_screen.dart';
 import '../model/user_model.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
@@ -709,6 +710,18 @@ class _AdminProfileViewState extends State<_AdminProfileView> {
                                     context,
                                     MaterialPageRoute(builder: (context) => const ProfileDetailsScreen()),
                                   ).then((_) => setState(() {}));
+                                },
+                              ),
+                              _buildItemDivider(),
+                              _ProfileMenuItem(
+                                icon: Icons.person_add_rounded,
+                                title: "Staff Credentials",
+                                subtitle: "Create waiter and vendor accounts",
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => const UserManagementScreen()),
+                                  );
                                 },
                               ),
                               _buildItemDivider(),
