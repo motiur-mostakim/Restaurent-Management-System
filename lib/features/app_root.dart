@@ -5,7 +5,7 @@ import '../model/user_model.dart';
 import 'admin_dashboard_screen.dart';
 import 'login_screen.dart';
 import 'waiter_dashboard.dart';
-import 'kds_screen.dart';
+import 'kitchen_main_screen.dart';
 
 class AppRoot extends StatelessWidget {
   const AppRoot({super.key});
@@ -50,7 +50,7 @@ class AppRoot extends StatelessWidget {
               case 'waiter':
                 return const WaiterScreen();
               case 'vendor_staff':
-                return const KdsScreen();
+                return const KitchenMainScreen();
               default:
                 FirebaseAuth.instance.signOut();
                 return const LoginScreen();

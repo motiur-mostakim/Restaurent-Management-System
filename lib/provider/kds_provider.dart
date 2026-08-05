@@ -6,7 +6,7 @@ class KdsProvider with ChangeNotifier {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   List<OrderModel> _orders = [];
   double _totalSales = 0;
-  String _vendorType = '';
+  String _vendorType = ''; // Empty string means "All Vendors"
   String _activeTab = 'live';
   bool _isLoading = false;
 
@@ -39,8 +39,6 @@ class KdsProvider with ChangeNotifier {
   }
 
   void listenOrders() {
-    if (_vendorType.isEmpty) return; // ভেন্ডর সিলেক্ট না থাকলে থামিয়ে দিবে
-
     _isLoading = true;
     notifyListeners();
 
@@ -58,7 +56,7 @@ class KdsProvider with ChangeNotifier {
 
       _orders = allOrders.where((order) {
         return order.items.any((item) {
-          bool isMyVendor = item.vendorId == _vendorType;
+          bool isMyVendor = _vendorType.isEmpty || item.vendorId == _vendorType;
           if (_activeTab == 'live') return isMyVendor && item.status != 'delivered';
           return isMyVendor && item.status == 'delivered';
         });
@@ -87,7 +85,8 @@ class KdsProvider with ChangeNotifier {
         final data = doc.data();
         final items = data['items'] as List? ?? [];
         for (var item in items) {
-          if (item['vendorId'] == _vendorType && item['status'] == 'delivered') {
+          bool isMyVendor = _vendorType.isEmpty || item['vendorId'] == _vendorType;
+          if (isMyVendor && item['status'] == 'delivered') {
             sales += (item['price'] as num).toDouble() * (item['quantity'] as num).toDouble();
           }
         }

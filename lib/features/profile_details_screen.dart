@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import '../model/user_model.dart';
 
 class ProfileDetailsScreen extends StatefulWidget {
-  const ProfileDetailsScreen({super.key});
+  final bool showAppBar;
+  const ProfileDetailsScreen({super.key, this.showAppBar = true});
 
   @override
   State<ProfileDetailsScreen> createState() => _ProfileDetailsScreenState();
@@ -70,7 +71,7 @@ class _ProfileDetailsScreenState extends State<ProfileDetailsScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("Profile updated successfully!")),
           );
-          Navigator.pop(context);
+          if (widget.showAppBar) Navigator.pop(context);
         }
       }
     } catch (e) {
@@ -93,6 +94,95 @@ class _ProfileDetailsScreenState extends State<ProfileDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    Widget content = _isLoading
+        ? const Center(child: CircularProgressIndicator())
+        : SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Center(
+                    child: CircleAvatar(
+                      radius: 50,
+                      backgroundColor: Color(0xFFFF4F18),
+                      child: Icon(Icons.person, size: 50, color: Colors.white),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  _buildLabel("FULL NAME"),
+                  const SizedBox(height: 8),
+                  _buildTextField(
+                    controller: _nameController,
+                    hint: "Enter your name",
+                    icon: Icons.person_outline,
+                    validator: (value) =>
+                        value!.isEmpty ? "Name is required" : null,
+                  ),
+                  const SizedBox(height: 20),
+                  _buildLabel("EMAIL ADDRESS"),
+                  const SizedBox(height: 8),
+                  _buildTextField(
+                    controller: TextEditingController(text: _userData?.email),
+                    hint: "Email",
+                    icon: Icons.email_outlined,
+                    enabled: false,
+                  ),
+                  const SizedBox(height: 20),
+                  _buildLabel("PHONE NUMBER"),
+                  const SizedBox(height: 8),
+                  _buildTextField(
+                    controller: _phoneController,
+                    hint: "Enter phone number",
+                    icon: Icons.phone_outlined,
+                    keyboardType: TextInputType.phone,
+                  ),
+                  const SizedBox(height: 20),
+                  _buildLabel("DESIGNATION / ROLE"),
+                  const SizedBox(height: 8),
+                  _buildTextField(
+                    controller: TextEditingController(
+                        text: _userData?.role.toUpperCase()),
+                    hint: "Role",
+                    icon: Icons.badge_outlined,
+                    enabled: false,
+                  ),
+                  const SizedBox(height: 40),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _isSaving ? null : _updateProfile,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFF4F18),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: _isSaving
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                  color: Colors.white, strokeWidth: 2),
+                            )
+                          : const Text(
+                              "Save Changes",
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold),
+                            ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+
+    if (!widget.showAppBar) return content;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
@@ -104,92 +194,7 @@ class _ProfileDetailsScreenState extends State<ProfileDetailsScreen> {
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Center(
-                      child: CircleAvatar(
-                        radius: 50,
-                        backgroundColor: Color(0xFFFF4F18),
-                        child: Icon(Icons.person, size: 50, color: Colors.white),
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-                    _buildLabel("FULL NAME"),
-                    const SizedBox(height: 8),
-                    _buildTextField(
-                      controller: _nameController,
-                      hint: "Enter your name",
-                      icon: Icons.person_outline,
-                      validator: (value) =>
-                          value!.isEmpty ? "Name is required" : null,
-                    ),
-                    const SizedBox(height: 20),
-                    _buildLabel("EMAIL ADDRESS"),
-                    const SizedBox(height: 8),
-                    _buildTextField(
-                      controller: TextEditingController(text: _userData?.email),
-                      hint: "Email",
-                      icon: Icons.email_outlined,
-                      enabled: false,
-                    ),
-                    const SizedBox(height: 20),
-                    _buildLabel("PHONE NUMBER"),
-                    const SizedBox(height: 8),
-                    _buildTextField(
-                      controller: _phoneController,
-                      hint: "Enter phone number",
-                      icon: Icons.phone_outlined,
-                      keyboardType: TextInputType.phone,
-                    ),
-                    const SizedBox(height: 20),
-                    _buildLabel("DESIGNATION / ROLE"),
-                    const SizedBox(height: 8),
-                    _buildTextField(
-                      controller: TextEditingController(
-                          text: _userData?.role.toUpperCase()),
-                      hint: "Role",
-                      icon: Icons.badge_outlined,
-                      enabled: false,
-                    ),
-                    const SizedBox(height: 40),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _isSaving ? null : _updateProfile,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFFF4F18),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          elevation: 0,
-                        ),
-                        child: _isSaving
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                    color: Colors.white, strokeWidth: 2),
-                              )
-                            : const Text(
-                                "Save Changes",
-                                style: TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.bold),
-                              ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+      body: content,
     );
   }
 

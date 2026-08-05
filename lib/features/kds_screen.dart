@@ -36,7 +36,7 @@ class _KdsScreenState extends State<KdsScreen> {
   }
 
   String formatCurrency(double amount) {
-    return NumberFormat.currency(symbol: '\$', decimalDigits: 2).format(amount);
+    return NumberFormat.currency(symbol: '৳', decimalDigits: 0).format(amount);
   }
 
   @override
@@ -53,7 +53,7 @@ class _KdsScreenState extends State<KdsScreen> {
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
         title: Text(
-          "Kitchen Display: ${currentVendor.name}",
+          "Orders: ${currentVendor.name}",
           style: const TextStyle(
             fontWeight: FontWeight.bold,
             color: Colors.black,
@@ -63,65 +63,6 @@ class _KdsScreenState extends State<KdsScreen> {
         elevation: 0,
         centerTitle: false,
         iconTheme: const IconThemeData(color: Colors.black),
-        actions: [
-          IconButton(
-            onPressed: () => FirebaseAuth.instance.signOut(),
-            icon: const Icon(Icons.logout, color: Color(0xFF64748B)),
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
-      drawer: Drawer(
-        child: Column(
-          children: [
-            DrawerHeader(
-              decoration: BoxDecoration(color: primaryColor),
-              child: const Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.kitchen_outlined, color: Colors.white, size: 48),
-                    SizedBox(height: 12),
-                    Text(
-                      "Kitchen Panel",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.dashboard_outlined),
-              title: const Text("Order Display"),
-              selected: true,
-              selectedColor: primaryColor,
-              onTap: () => Navigator.pop(context),
-            ),
-            ListTile(
-              leading: const Icon(Icons.inventory_2_outlined),
-              title: const Text("Kitchen Menu / Inventory"),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const KitchenMenuScreen()),
-                );
-              },
-            ),
-            const Spacer(),
-            const Divider(),
-            ListTile(
-              leading: const Icon(Icons.logout),
-              title: const Text("Logout"),
-              onTap: () => FirebaseAuth.instance.signOut(),
-            ),
-            const SizedBox(height: 20),
-          ],
-        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -151,7 +92,7 @@ class _KdsScreenState extends State<KdsScreen> {
                         activeTab: provider.activeTab,
                         onChanged: (val) => provider.activeTab = val,
                       ),
-                      if (waiterProvider.vendors.isNotEmpty)
+                      if (waiterProvider.vendors.length > 1)
                         _VendorSwitcher(
                           vendors: waiterProvider.vendors,
                           activeVendor: provider.vendorType,
