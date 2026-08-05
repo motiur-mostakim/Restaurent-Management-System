@@ -40,7 +40,8 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    if (!_isLogin && (_nameController.text.isEmpty || _designationController.text.isEmpty)) {
+    if (!_isLogin &&
+        (_nameController.text.isEmpty || _designationController.text.isEmpty)) {
       setState(() => _error = "Please fill in Name and Designation");
       return;
     }
@@ -79,20 +80,26 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  Future<void> _syncUserToFirestore(User user, String role, {String? name, String? designation}) async {
+  Future<void> _syncUserToFirestore(
+    User user,
+    String role, {
+    String? name,
+    String? designation,
+  }) async {
     final userModel = UserModel(
       uid: user.uid,
       email: user.email ?? '',
-      name: name ?? user.displayName ?? role[0].toUpperCase() + role.substring(1),
+      name:
+          name ?? user.displayName ?? role[0].toUpperCase() + role.substring(1),
       role: role,
       designation: designation,
       vendorId: role == 'vendor_staff' ? 'fast_food' : null,
     );
-    
-    await _db.collection('users').doc(user.uid).set(
-      userModel.toMap(),
-      SetOptions(merge: true),
-    );
+
+    await _db
+        .collection('users')
+        .doc(user.uid)
+        .set(userModel.toMap(), SetOptions(merge: true));
   }
 
   @override
@@ -107,7 +114,11 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.restaurant_menu, size: 72, color: Color(0xFFFF4F18)),
+                const Icon(
+                  Icons.restaurant_menu,
+                  size: 72,
+                  color: Color(0xFFFF4F18),
+                ),
                 const SizedBox(height: 20),
                 const Text(
                   "Restaurant OS",
@@ -130,7 +141,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     alignment: Alignment.centerLeft,
                     child: Text(
                       "Signing in as:",
-                      style: const TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w500),
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -149,13 +164,19 @@ class _LoginScreenState extends State<LoginScreen> {
                   TextField(
                     controller: _nameController,
                     style: const TextStyle(color: Colors.white),
-                    decoration: _inputDecoration("Full Name", Icons.person_outline),
+                    decoration: _inputDecoration(
+                      "Full Name",
+                      Icons.person_outline,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   TextField(
                     controller: _designationController,
                     style: const TextStyle(color: Colors.white),
-                    decoration: _inputDecoration("Designation", Icons.work_outline),
+                    decoration: _inputDecoration(
+                      "Designation",
+                      Icons.work_outline,
+                    ),
                   ),
                   const SizedBox(height: 16),
                 ],
@@ -163,7 +184,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 TextField(
                   controller: _emailController,
                   style: const TextStyle(color: Colors.white),
-                  decoration: _inputDecoration("Email Address", Icons.email_outlined),
+                  decoration: _inputDecoration(
+                    "Email Address",
+                    Icons.email_outlined,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 TextField(
@@ -182,18 +206,26 @@ class _LoginScreenState extends State<LoginScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFFF4F18),
                       foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       elevation: 0,
                     ),
                     child: _isLoading
                         ? const SizedBox(
                             height: 24,
                             width: 24,
-                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
                           )
                         : Text(
                             _isLogin ? "Sign In" : "Create Admin Account",
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                   ),
                 ),
@@ -204,12 +236,22 @@ class _LoginScreenState extends State<LoginScreen> {
                   onPressed: () => setState(() => _isLogin = !_isLogin),
                   child: RichText(
                     text: TextSpan(
-                      style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
+                      style: const TextStyle(
+                        color: Color(0xFF94A3B8),
+                        fontSize: 14,
+                      ),
                       children: [
-                        TextSpan(text: _isLogin ? "Don't have an account? " : "Already have an account? "),
+                        TextSpan(
+                          text: _isLogin
+                              ? "Don't have an account? "
+                              : "Already have an account? ",
+                        ),
                         TextSpan(
                           text: _isLogin ? "Register as Admin" : "Sign In",
-                          style: const TextStyle(color: Color(0xFFFF4F18), fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                            color: Color(0xFFFF4F18),
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ],
                     ),
@@ -228,12 +270,19 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.error_outline, color: Colors.redAccent, size: 20),
+                          const Icon(
+                            Icons.error_outline,
+                            color: Colors.redAccent,
+                            size: 20,
+                          ),
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(
                               _error!,
-                              style: const TextStyle(color: Colors.redAccent, fontSize: 13),
+                              style: const TextStyle(
+                                color: Colors.redAccent,
+                                fontSize: 13,
+                              ),
                             ),
                           ),
                         ],
@@ -258,7 +307,9 @@ class _LoginScreenState extends State<LoginScreen> {
             duration: const Duration(milliseconds: 200),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: isSelected ? const Color(0xFFFF4F18) : Colors.white.withOpacity(0.05),
+              color: isSelected
+                  ? const Color(0xFFFF4F18)
+                  : Colors.white.withOpacity(0.05),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: isSelected ? const Color(0xFFFF4F18) : Colors.white10,
