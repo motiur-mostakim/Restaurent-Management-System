@@ -45,10 +45,7 @@ class _WaiterScreenState extends State<WaiterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: _pages,
-      ),
+      body: IndexedStack(index: _selectedIndex, children: _pages),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           boxShadow: [
@@ -71,8 +68,14 @@ class _WaiterScreenState extends State<WaiterScreen> {
           selectedItemColor: const Color(0xFFFF4F18),
           unselectedItemColor: const Color(0xFF94A3B8),
           showUnselectedLabels: true,
-          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
-          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 11),
+          selectedLabelStyle: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 11,
+          ),
+          unselectedLabelStyle: const TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 11,
+          ),
           elevation: 0,
           items: const [
             BottomNavigationBarItem(
@@ -104,6 +107,7 @@ class _WaiterScreenState extends State<WaiterScreen> {
 
 class _WaiterHomeView extends StatefulWidget {
   final Function(int) onNavigate;
+
   const _WaiterHomeView({required this.onNavigate});
 
   @override
@@ -128,18 +132,20 @@ class _WaiterHomeViewState extends State<_WaiterHomeView> {
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<WaiterProvider>(context);
-    
-    final now = DateTime.now();
-    bool isToday(DateTime date) => 
-        date.year == now.year && 
-        date.month == now.month && 
-        date.day == now.day;
 
-    final todayOrders = provider.orders.where((o) => isToday(o.createdAt)).toList();
-    
+    final now = DateTime.now();
+    bool isToday(DateTime date) =>
+        date.year == now.year && date.month == now.month && date.day == now.day;
+
+    final todayOrders = provider.orders
+        .where((o) => isToday(o.createdAt))
+        .toList();
+
     int totalOrdersToday = todayOrders.length;
     int pendingOrders = todayOrders.where((o) => o.status == 'pending').length;
-    int deliveredOrders = todayOrders.where((o) => o.status == 'delivered').length;
+    int deliveredOrders = todayOrders
+        .where((o) => o.status == 'delivered')
+        .length;
     int readyOrders = todayOrders.where((o) => o.status == 'ready').length;
     double totalSellToday = todayOrders
         .where((o) => o.status == 'delivered')
@@ -150,7 +156,11 @@ class _WaiterHomeViewState extends State<_WaiterHomeView> {
       appBar: AppBar(
         title: const Text(
           "Waiter Dashboard",
-          style: TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF0F172A), letterSpacing: -0.5),
+          style: TextStyle(
+            fontWeight: FontWeight.w900,
+            color: Color(0xFF0F172A),
+            letterSpacing: -0.5,
+          ),
         ),
         backgroundColor: Colors.white,
         elevation: 0,
@@ -207,120 +217,174 @@ class _WaiterHomeViewState extends State<_WaiterHomeView> {
               children: [
                 const Text(
                   "Popular Items",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF0F172A)),
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF0F172A),
+                  ),
                 ),
                 TextButton(
                   onPressed: () => widget.onNavigate(2),
-                  child: const Text("See All", style: TextStyle(color: Color(0xFFFF4F18), fontWeight: FontWeight.bold)),
+                  child: const Text(
+                    "See All",
+                    style: TextStyle(
+                      color: Color(0xFFFF4F18),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ],
             ),
             const SizedBox(height: 12),
             SizedBox(
               height: 200,
-              child: provider.menuItems.isEmpty 
-                ? const Center(child: Text("Loading items...", style: TextStyle(color: Color(0xFF94A3B8))))
-                : ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    physics: const BouncingScrollPhysics(),
-                    itemCount: provider.menuItems.take(8).length,
-                    separatorBuilder: (context, index) => const SizedBox(width: 16),
-                    itemBuilder: (context, index) {
-                      final item = provider.menuItems[index];
-                      return Container(
-                        width: 160,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(24),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.04),
-                              blurRadius: 15,
-                              offset: const Offset(0, 8),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              flex: 3,
-                              child: Stack(
-                                children: [
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-                                      image: item.image != null && item.image!.isNotEmpty
-                                        ? DecorationImage(
-                                            image: NetworkImage(item.image!),
-                                            fit: BoxFit.cover,
-                                          )
-                                        : null,
-                                      color: const Color(0xFFF1F5F9),
-                                    ),
-                                    child: item.image == null || item.image!.isEmpty
-                                      ? const Center(
-                                          child: Icon(Icons.fastfood_outlined, color: Color(0xFFCBD5E1), size: 40),
-                                        )
-                                      : null,
-                                  ),
-                                  Positioned(
-                                    top: 10,
-                                    right: 10,
-                                    child: GestureDetector(
-                                      onTap: () {
-                                        provider.addToCart(item);
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(
-                                            content: Text("${item.name} added"),
-                                            duration: const Duration(seconds: 1),
-                                            behavior: SnackBarBehavior.floating,
-                                            width: 160,
-                                          ),
-                                        );
-                                      },
-                                      child: Container(
-                                        padding: const EdgeInsets.all(6),
-                                        decoration: const BoxDecoration(
-                                          color: Colors.white,
-                                          shape: BoxShape.circle,
-                                          boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)],
-                                        ),
-                                        child: const Icon(Icons.add_rounded, color: Color(0xFFFF4F18), size: 18),
-                                      ),
-                                    ),
-                                  ),
-                                ],
+              child: provider.menuItems.isEmpty
+                  ? const Center(
+                      child: Text(
+                        "Loading items...",
+                        style: TextStyle(color: Color(0xFF94A3B8)),
+                      ),
+                    )
+                  : ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      physics: const BouncingScrollPhysics(),
+                      itemCount: provider.menuItems.take(8).length,
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(width: 16),
+                      itemBuilder: (context, index) {
+                        final item = provider.menuItems[index];
+                        return Container(
+                          width: 160,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(24),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.04),
+                                blurRadius: 15,
+                                offset: const Offset(0, 8),
                               ),
-                            ),
-                            Expanded(
-                              flex: 2,
-                              child: Padding(
-                                padding: const EdgeInsets.all(12),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment: MainAxisAlignment.center,
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                flex: 3,
+                                child: Stack(
                                   children: [
-                                    Text(
-                                      item.name,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: Color(0xFF1E293B)),
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        borderRadius:
+                                            const BorderRadius.vertical(
+                                              top: Radius.circular(24),
+                                            ),
+                                        image:
+                                            item.image != null &&
+                                                item.image!.isNotEmpty
+                                            ? DecorationImage(
+                                                image: NetworkImage(
+                                                  item.image!,
+                                                ),
+                                                fit: BoxFit.cover,
+                                              )
+                                            : null,
+                                        color: const Color(0xFFF1F5F9),
+                                      ),
+                                      child:
+                                          item.image == null ||
+                                              item.image!.isEmpty
+                                          ? const Center(
+                                              child: Icon(
+                                                Icons.fastfood_outlined,
+                                                color: Color(0xFFCBD5E1),
+                                                size: 40,
+                                              ),
+                                            )
+                                          : null,
                                     ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      formatCurrency(item.price),
-                                      style: const TextStyle(color: Color(0xFFFF4F18), fontWeight: FontWeight.w900, fontSize: 13),
+                                    Positioned(
+                                      top: 10,
+                                      right: 10,
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          provider.addToCart(item);
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                "${item.name} added",
+                                              ),
+                                              duration: const Duration(
+                                                seconds: 1,
+                                              ),
+                                              behavior:
+                                                  SnackBarBehavior.floating,
+                                              width: 160,
+                                            ),
+                                          );
+                                        },
+                                        child: Container(
+                                          padding: const EdgeInsets.all(6),
+                                          decoration: const BoxDecoration(
+                                            color: Colors.white,
+                                            shape: BoxShape.circle,
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black12,
+                                                blurRadius: 4,
+                                              ),
+                                            ],
+                                          ),
+                                          child: const Icon(
+                                            Icons.add_rounded,
+                                            color: Color(0xFFFF4F18),
+                                            size: 18,
+                                          ),
+                                        ),
+                                      ),
                                     ),
                                   ],
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
+                              Expanded(
+                                flex: 2,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(12),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        item.name,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w800,
+                                          fontSize: 14,
+                                          color: Color(0xFF1E293B),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        formatCurrency(item.price),
+                                        style: const TextStyle(
+                                          color: Color(0xFFFF4F18),
+                                          fontWeight: FontWeight.w900,
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
             ),
             const SizedBox(height: 32),
             Row(
@@ -328,80 +392,111 @@ class _WaiterHomeViewState extends State<_WaiterHomeView> {
               children: [
                 const Text(
                   "Recent Orders",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF0F172A)),
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF0F172A),
+                  ),
                 ),
                 TextButton(
                   onPressed: () => widget.onNavigate(1),
-                  child: const Text("View All", style: TextStyle(color: Color(0xFFFF4F18), fontWeight: FontWeight.bold)),
+                  child: const Text(
+                    "View All",
+                    style: TextStyle(
+                      color: Color(0xFFFF4F18),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ],
             ),
             const SizedBox(height: 16),
-            provider.orders.isEmpty 
-              ? const Center(child: Padding(
-                  padding: EdgeInsets.all(40.0),
-                  child: Text("No orders found", style: TextStyle(color: Color(0xFF94A3B8))),
-                ))
-              : ListView.separated(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: provider.orders.take(10).length,
-                  separatorBuilder: (context, index) => const SizedBox(height: 12),
-                  itemBuilder: (context, index) {
-                    final order = provider.orders[index];
-                    return InkWell(
-                      onTap: () => widget.onNavigate(1),
-                      borderRadius: BorderRadius.circular(20),
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: const Color(0xFFE2E8F0)),
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF8FAFC),
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              child: const Icon(Icons.receipt_rounded, color: Color(0xFF64748B)),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Table: ${order.tableNumber}",
-                                    style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: Color(0xFF1E293B)),
-                                  ),
-                                  Row(
-                                    children: [
-                                      Text(
-                                        "${order.items.length} items • ${DateFormat('hh:mm a').format(order.createdAt)}",
-                                        style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12, fontWeight: FontWeight.w600),
-                                      ),
-                                      const Spacer(),
-                                      Text(
-                                        formatCurrency(order.totalAmount),
-                                        style: const TextStyle(color: Color(0xFFFF4F18), fontWeight: FontWeight.w900, fontSize: 13),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            _StatusBadge(status: order.status),
-                          ],
-                        ),
+            provider.orders.isEmpty
+                ? const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(40.0),
+                      child: Text(
+                        "No orders found",
+                        style: TextStyle(color: Color(0xFF94A3B8)),
                       ),
-                    );
-                  },
-                ),
+                    ),
+                  )
+                : ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: provider.orders.take(10).length,
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      final order = provider.orders[index];
+                      return InkWell(
+                        onTap: () => widget.onNavigate(1),
+                        borderRadius: BorderRadius.circular(20),
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF8FAFC),
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                child: const Icon(
+                                  Icons.receipt_rounded,
+                                  color: Color(0xFF64748B),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Table: ${order.tableNumber}",
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: 16,
+                                        color: Color(0xFF1E293B),
+                                      ),
+                                    ),
+                                    Row(
+                                      children: [
+                                        Text(
+                                          "${order.items.length} items • ${DateFormat('hh:mm a').format(order.createdAt)}",
+                                          style: const TextStyle(
+                                            color: Color(0xFF94A3B8),
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        const Spacer(),
+                                        Text(
+                                          formatCurrency(order.totalAmount),
+                                          style: const TextStyle(
+                                            color: Color(0xFFFF4F18),
+                                            fontWeight: FontWeight.w900,
+                                            fontSize: 13,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              _StatusBadge(status: order.status),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
             const SizedBox(height: 20),
           ],
         ),
@@ -412,6 +507,7 @@ class _WaiterHomeViewState extends State<_WaiterHomeView> {
 
 class _StatusBadge extends StatelessWidget {
   final String status;
+
   const _StatusBadge({required this.status});
 
   @override
@@ -419,17 +515,36 @@ class _StatusBadge extends StatelessWidget {
     Color color;
     Color bg;
     switch (status) {
-      case 'ready': color = const Color(0xFF166534); bg = const Color(0xFFDCFCE7); break;
-      case 'pending': color = const Color(0xFF9A3412); bg = const Color(0xFFFFEDD5); break;
-      case 'delivered': color = const Color(0xFF64748B); bg = const Color(0xFFF1F5F9); break;
-      default: color = const Color(0xFF1D4ED8); bg = const Color(0xFFEFF6FF);
+      case 'ready':
+        color = const Color(0xFF166534);
+        bg = const Color(0xFFDCFCE7);
+        break;
+      case 'pending':
+        color = const Color(0xFF9A3412);
+        bg = const Color(0xFFFFEDD5);
+        break;
+      case 'delivered':
+        color = const Color(0xFF64748B);
+        bg = const Color(0xFFF1F5F9);
+        break;
+      default:
+        color = const Color(0xFF1D4ED8);
+        bg = const Color(0xFFEFF6FF);
     }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(12)),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(12),
+      ),
       child: Text(
         status.toUpperCase(),
-        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: color, letterSpacing: 0.5),
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w900,
+          color: color,
+          letterSpacing: 0.5,
+        ),
       ),
     );
   }
@@ -442,9 +557,9 @@ class _StatCard extends StatelessWidget {
   final Color color;
 
   const _StatCard({
-    required this.title, 
-    required this.value, 
-    required this.icon, 
+    required this.title,
+    required this.value,
+    required this.icon,
     required this.color,
   });
 
@@ -468,11 +583,7 @@ class _StatCard extends StatelessWidget {
           Positioned(
             right: -10,
             top: -10,
-            child: Icon(
-              icon,
-              size: 55,
-              color: color.withOpacity(0.04),
-            ),
+            child: Icon(icon, size: 55, color: color.withOpacity(0.04)),
           ),
           Padding(
             padding: const EdgeInsets.all(16),
@@ -487,16 +598,16 @@ class _StatCard extends StatelessWidget {
                   ),
                   child: Icon(icon, color: color, size: 18),
                 ),
-               const SizedBox(height: 16,),
+                const SizedBox(height: 16),
                 FittedBox(
                   fit: BoxFit.scaleDown,
                   child: Text(
                     value,
                     style: const TextStyle(
-                      fontSize: 20, 
-                      fontWeight: FontWeight.w900, 
+                      fontSize: 20,
+                      fontWeight: FontWeight.w900,
                       color: Color(0xFF0F172A),
-                      letterSpacing: -1
+                      letterSpacing: -1,
                     ),
                   ),
                 ),
@@ -505,11 +616,11 @@ class _StatCard extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    fontSize: 8, 
-                    color: Color(0xFF64748B), 
+                    fontSize: 8,
+                    color: Color(0xFF64748B),
                     fontWeight: FontWeight.w900,
                     letterSpacing: 0.3,
-                    height: 1.2
+                    height: 1.2,
                   ),
                 ),
               ],
@@ -556,7 +667,9 @@ class _WaiterNewOrderViewState extends State<_WaiterNewOrderView> {
 
   void _showPaymentAndConfirm(WaiterProvider provider) {
     if (_tableController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Please enter table number")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please enter table number")),
+      );
       return;
     }
 
@@ -569,14 +682,18 @@ class _WaiterNewOrderViewState extends State<_WaiterNewOrderView> {
       status: 'pending',
       totalAmount: provider.total,
       createdAt: DateTime.now(),
-      items: provider.cart.map((item) => OrderItem(
-        name: item.name,
-        vendorId: item.vendorId,
-        price: item.price,
-        quantity: item.quantity,
-        status: 'pending',
-        image: item.image,
-      )).toList(),
+      items: provider.cart
+          .map(
+            (item) => OrderItem(
+              name: item.name,
+              vendorId: item.vendorId,
+              price: item.price,
+              quantity: item.quantity,
+              status: 'pending',
+              image: item.image,
+            ),
+          )
+          .toList(),
     );
 
     showGeneralDialog(
@@ -596,8 +713,10 @@ class _WaiterNewOrderViewState extends State<_WaiterNewOrderView> {
       ),
       transitionBuilder: (context, anim1, anim2, child) {
         return SlideTransition(
-          position: Tween(begin: const Offset(0, 1), end: const Offset(0, 0))
-              .animate(CurvedAnimation(parent: anim1, curve: Curves.easeOutQuart)),
+          position: Tween(
+            begin: const Offset(0, 1),
+            end: const Offset(0, 0),
+          ).animate(CurvedAnimation(parent: anim1, curve: Curves.easeOutQuart)),
           child: child,
         );
       },
@@ -614,7 +733,11 @@ class _WaiterNewOrderViewState extends State<_WaiterNewOrderView> {
       appBar: AppBar(
         title: const Text(
           "Create New Order",
-          style: TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF0F172A), letterSpacing: -0.5),
+          style: TextStyle(
+            fontWeight: FontWeight.w900,
+            color: Color(0xFF0F172A),
+            letterSpacing: -0.5,
+          ),
         ),
         backgroundColor: Colors.white,
         elevation: 0,
@@ -650,7 +773,9 @@ class _WaiterNewOrderViewState extends State<_WaiterNewOrderView> {
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
-                        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(32),
+                        ),
                       ),
                       child: Column(
                         children: [
@@ -662,7 +787,11 @@ class _WaiterNewOrderViewState extends State<_WaiterNewOrderView> {
                                   color: Colors.white.withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(14),
                                 ),
-                                child: const Icon(Icons.shopping_bag_outlined, color: Colors.white, size: 22),
+                                child: const Icon(
+                                  Icons.shopping_bag_outlined,
+                                  color: Colors.white,
+                                  size: 22,
+                                ),
                               ),
                               const SizedBox(width: 16),
                               Expanded(
@@ -671,11 +800,20 @@ class _WaiterNewOrderViewState extends State<_WaiterNewOrderView> {
                                   children: [
                                     const Text(
                                       "Order Summary",
-                                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 18),
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w900,
+                                        fontSize: 18,
+                                      ),
                                     ),
                                     Text(
-                                      provider.cart.isEmpty ? "No items selected" : "${provider.cart.length} items in selection",
-                                      style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 12),
+                                      provider.cart.isEmpty
+                                          ? "No items selected"
+                                          : "${provider.cart.length} items in selection",
+                                      style: TextStyle(
+                                        color: Colors.white.withOpacity(0.5),
+                                        fontSize: 12,
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -716,11 +854,18 @@ class _WaiterNewOrderViewState extends State<_WaiterNewOrderView> {
                         padding: const EdgeInsets.symmetric(vertical: 40),
                         child: Column(
                           children: [
-                            Icon(Icons.add_shopping_cart_rounded, size: 40, color: Colors.grey[200]),
+                            Icon(
+                              Icons.add_shopping_cart_rounded,
+                              size: 40,
+                              color: Colors.grey[200],
+                            ),
                             const SizedBox(height: 12),
                             const Text(
                               "Selection is empty",
-                              style: TextStyle(color: Color(0xFF94A3B8), fontWeight: FontWeight.w600),
+                              style: TextStyle(
+                                color: Color(0xFF94A3B8),
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ],
                         ),
@@ -736,7 +881,8 @@ class _WaiterNewOrderViewState extends State<_WaiterNewOrderView> {
                           final item = provider.cart[index];
                           return _CartItemTile(
                             item: item,
-                            onUpdate: (delta) => provider.updateQuantity(item.id, delta),
+                            onUpdate: (delta) =>
+                                provider.updateQuantity(item.id, delta),
                             onRemove: () => provider.removeFromCart(item.id),
                             formatCurrency: formatCurrency,
                           );
@@ -748,7 +894,9 @@ class _WaiterNewOrderViewState extends State<_WaiterNewOrderView> {
                       padding: const EdgeInsets.all(24),
                       decoration: const BoxDecoration(
                         color: Color(0xFFF8FAFC),
-                        borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
+                        borderRadius: BorderRadius.vertical(
+                          bottom: Radius.circular(32),
+                        ),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -756,25 +904,57 @@ class _WaiterNewOrderViewState extends State<_WaiterNewOrderView> {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text("TOTAL", style: TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.w900, fontSize: 10, letterSpacing: 1)),
+                              const Text(
+                                "TOTAL",
+                                style: TextStyle(
+                                  color: Color(0xFF64748B),
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 10,
+                                  letterSpacing: 1,
+                                ),
+                              ),
                               Text(
                                 formatCurrency(provider.total),
-                                style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: primaryColor),
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w900,
+                                  color: primaryColor,
+                                ),
                               ),
                             ],
                           ),
                           ElevatedButton(
-                            onPressed: (provider.cart.isEmpty || provider.isSubmitting) ? null : () => _showPaymentAndConfirm(provider),
+                            onPressed:
+                                (provider.cart.isEmpty || provider.isSubmitting)
+                                ? null
+                                : () => _showPaymentAndConfirm(provider),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: primaryColor,
                               foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                                vertical: 16,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
                               elevation: 0,
                             ),
                             child: provider.isSubmitting
-                                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                                : const Text("Confirm Order", style: TextStyle(fontWeight: FontWeight.w900)),
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Text(
+                                    "Confirm Order",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w900,
+                                    ),
+                                  ),
                           ),
                         ],
                       ),
@@ -791,7 +971,11 @@ class _WaiterNewOrderViewState extends State<_WaiterNewOrderView> {
                   children: [
                     const Text(
                       "Explore Menu",
-                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFF0F172A)),
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF0F172A),
+                      ),
                     ),
                     const SizedBox(height: 16),
                     // Categories
@@ -822,26 +1006,31 @@ class _WaiterNewOrderViewState extends State<_WaiterNewOrderView> {
                     const SizedBox(height: 24),
                     // Menu Items Grid
                     filteredItems.isEmpty
-                        ? const Center(child: Padding(
-                            padding: EdgeInsets.all(60.0),
-                            child: Text("No items available"),
-                          ))
+                        ? const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(60.0),
+                              child: Text("No items available"),
+                            ),
+                          )
                         : GridView.builder(
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
-                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              childAspectRatio: 0.75,
-                              mainAxisSpacing: 16,
-                              crossAxisSpacing: 16,
-                            ),
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 2,
+                                  childAspectRatio: 0.75,
+                                  mainAxisSpacing: 16,
+                                  crossAxisSpacing: 16,
+                                ),
                             padding: EdgeInsets.zero,
                             itemCount: filteredItems.length,
                             itemBuilder: (context, index) {
                               final item = filteredItems[index];
                               String vendorName = "";
                               try {
-                                vendorName = provider.vendors.firstWhere((v) => v.id == item.vendorId).name;
+                                vendorName = provider.vendors
+                                    .firstWhere((v) => v.id == item.vendorId)
+                                    .name;
                               } catch (_) {}
 
                               return _MenuItemCard(
@@ -879,12 +1068,21 @@ class _WaiterProfileView extends StatelessWidget {
             Text("Sign Out", style: TextStyle(fontWeight: FontWeight.w900)),
           ],
         ),
-        content: const Text("Are you sure you want to end your current session? You'll need to login again to access the dashboard."),
+        content: const Text(
+          "Are you sure you want to end your current session? You'll need to login again to access the dashboard.",
+        ),
         actionsPadding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text("CANCEL", style: TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.w900, letterSpacing: 1)),
+            child: const Text(
+              "CANCEL",
+              style: TextStyle(
+                color: Color(0xFF64748B),
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1,
+              ),
+            ),
           ),
           ElevatedButton(
             onPressed: () {
@@ -896,9 +1094,14 @@ class _WaiterProfileView extends StatelessWidget {
               foregroundColor: Colors.white,
               elevation: 0,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
             ),
-            child: const Text("LOGOUT", style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1)),
+            child: const Text(
+              "LOGOUT",
+              style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1),
+            ),
           ),
         ],
       ),
@@ -912,7 +1115,10 @@ class _WaiterProfileView extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       body: StreamBuilder<DocumentSnapshot>(
-        stream: FirebaseFirestore.instance.collection('users').doc(user?.uid).snapshots(),
+        stream: FirebaseFirestore.instance
+            .collection('users')
+            .doc(user?.uid)
+            .snapshots(),
         builder: (context, snapshot) {
           UserModel? userData;
           if (snapshot.hasData && snapshot.data!.exists) {
@@ -951,7 +1157,10 @@ class _WaiterProfileView extends StatelessWidget {
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             gradient: RadialGradient(
-                              colors: [const Color(0xFFFF4F18).withOpacity(0.12), Colors.transparent],
+                              colors: [
+                                const Color(0xFFFF4F18).withOpacity(0.12),
+                                Colors.transparent,
+                              ],
                             ),
                           ),
                         ),
@@ -966,10 +1175,17 @@ class _WaiterProfileView extends StatelessWidget {
                                 padding: const EdgeInsets.all(4),
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
-                                  border: Border.all(color: const Color(0xFFFF4F18).withOpacity(0.5), width: 2),
+                                  border: Border.all(
+                                    color: const Color(
+                                      0xFFFF4F18,
+                                    ).withOpacity(0.5),
+                                    width: 2,
+                                  ),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: const Color(0xFFFF4F18).withOpacity(0.25),
+                                      color: const Color(
+                                        0xFFFF4F18,
+                                      ).withOpacity(0.25),
                                       blurRadius: 25,
                                       spreadRadius: 5,
                                     ),
@@ -978,7 +1194,11 @@ class _WaiterProfileView extends StatelessWidget {
                                 child: const CircleAvatar(
                                   radius: 55,
                                   backgroundColor: Color(0xFF1E293B),
-                                  child: Icon(Icons.person_rounded, size: 60, color: Colors.white),
+                                  child: Icon(
+                                    Icons.person_rounded,
+                                    size: 60,
+                                    color: Colors.white,
+                                  ),
                                 ),
                               ),
                               Positioned(
@@ -989,43 +1209,61 @@ class _WaiterProfileView extends StatelessWidget {
                                   decoration: BoxDecoration(
                                     color: const Color(0xFFFF4F18),
                                     shape: BoxShape.circle,
-                                    border: Border.all(color: const Color(0xFF1E293B), width: 2),
+                                    border: Border.all(
+                                      color: const Color(0xFF1E293B),
+                                      width: 2,
+                                    ),
                                   ),
-                                  child: const Icon(Icons.camera_alt_rounded, size: 14, color: Colors.white),
+                                  child: const Icon(
+                                    Icons.camera_alt_rounded,
+                                    size: 14,
+                                    color: Colors.white,
+                                  ),
                                 ),
                               ),
                             ],
                           ),
                           const SizedBox(height: 20),
                           Text(
-                            userData?.name ?? user?.displayName ?? "Waiter User",
+                            userData?.name ??
+                                user?.displayName ??
+                                "Waiter User",
                             style: const TextStyle(
-                              fontSize: 26, 
-                              fontWeight: FontWeight.w900, 
+                              fontSize: 26,
+                              fontWeight: FontWeight.w900,
                               color: Colors.white,
                               letterSpacing: -0.5,
                             ),
                           ),
                           const SizedBox(height: 8),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 6,
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.white.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(30),
-                              border: Border.all(color: Colors.white.withOpacity(0.2)),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.2),
+                              ),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(Icons.verified_user_rounded, size: 14, color: Color(0xFFFF4F18)),
+                                const Icon(
+                                  Icons.verified_user_rounded,
+                                  size: 14,
+                                  color: Color(0xFFFF4F18),
+                                ),
                                 const SizedBox(width: 8),
                                 Text(
                                   (userData?.role ?? "WAITER").toUpperCase(),
                                   style: const TextStyle(
-                                    color: Colors.white, 
-                                    fontSize: 11, 
-                                    fontWeight: FontWeight.w800, 
-                                    letterSpacing: 1.5
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 1.5,
                                   ),
                                 ),
                               ],
@@ -1043,7 +1281,9 @@ class _WaiterProfileView extends StatelessWidget {
                   child: Container(
                     decoration: const BoxDecoration(
                       color: Color(0xFFF8FAFC),
-                      borderRadius: BorderRadius.vertical(top: Radius.circular(35)),
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(35),
+                      ),
                     ),
                     padding: const EdgeInsets.fromLTRB(20, 40, 20, 20),
                     child: Column(
@@ -1051,15 +1291,24 @@ class _WaiterProfileView extends StatelessWidget {
                       children: [
                         const Text(
                           "MANAGEMENT",
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: Color(0xFF94A3B8), letterSpacing: 2),
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFF94A3B8),
+                            letterSpacing: 2,
+                          ),
                         ),
                         const SizedBox(height: 16),
                         Container(
                           decoration: BoxDecoration(
-                            color: Colors.white, 
+                            color: Colors.white,
                             borderRadius: BorderRadius.circular(28),
                             boxShadow: [
-                              BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 24, offset: const Offset(0, 12)),
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.04),
+                                blurRadius: 24,
+                                offset: const Offset(0, 12),
+                              ),
                             ],
                           ),
                           child: Column(
@@ -1071,13 +1320,19 @@ class _WaiterProfileView extends StatelessWidget {
                                 onTap: () {
                                   Navigator.push(
                                     context,
-                                    MaterialPageRoute(builder: (context) => const ProfileDetailsScreen()),
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const ProfileDetailsScreen(),
+                                    ),
                                   );
                                 },
                               ),
                               const Padding(
                                 padding: EdgeInsets.only(left: 72, right: 20),
-                                child: Divider(height: 1, color: Color(0xFFF1F5F9)),
+                                child: Divider(
+                                  height: 1,
+                                  color: Color(0xFFF1F5F9),
+                                ),
                               ),
                               _ProfileMenuItem(
                                 icon: Icons.notifications_none_rounded,
@@ -1091,15 +1346,24 @@ class _WaiterProfileView extends StatelessWidget {
                         const SizedBox(height: 32),
                         const Text(
                           "SECURITY",
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: Color(0xFF94A3B8), letterSpacing: 2),
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFF94A3B8),
+                            letterSpacing: 2,
+                          ),
                         ),
                         const SizedBox(height: 16),
                         Container(
                           decoration: BoxDecoration(
-                            color: Colors.white, 
+                            color: Colors.white,
                             borderRadius: BorderRadius.circular(28),
                             boxShadow: [
-                              BoxShadow(color: Colors.black12, blurRadius: 24, offset: const Offset(0, 12)),
+                              BoxShadow(
+                                color: Colors.black12,
+                                blurRadius: 24,
+                                offset: const Offset(0, 12),
+                              ),
                             ],
                           ),
                           child: _ProfileMenuItem(
@@ -1134,12 +1398,12 @@ class _ProfileMenuItem extends StatelessWidget {
   final Color? textColor;
 
   const _ProfileMenuItem({
-    required this.icon, 
-    required this.title, 
+    required this.icon,
+    required this.title,
     this.subtitle,
-    required this.onTap, 
-    this.iconColor, 
-    this.textColor
+    required this.onTap,
+    this.iconColor,
+    this.textColor,
   });
 
   @override
@@ -1157,7 +1421,11 @@ class _ProfileMenuItem extends StatelessWidget {
                 color: (iconColor ?? const Color(0xFFFF4F18)).withOpacity(0.08),
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: Icon(icon, color: iconColor ?? const Color(0xFFFF4F18), size: 24),
+              child: Icon(
+                icon,
+                color: iconColor ?? const Color(0xFFFF4F18),
+                size: 24,
+              ),
             ),
             const SizedBox(width: 20),
             Expanded(
@@ -1186,7 +1454,11 @@ class _ProfileMenuItem extends StatelessWidget {
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right_rounded, size: 24, color: Color(0xFFCBD5E1)),
+            const Icon(
+              Icons.chevron_right_rounded,
+              size: 24,
+              color: Color(0xFFCBD5E1),
+            ),
           ],
         ),
       ),
@@ -1214,9 +1486,19 @@ class _CategoryButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: isSelected ? const Color(0xFFFF4F18) : Colors.white,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: isSelected ? [BoxShadow(color: const Color(0xFFFF4F18).withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 4))] : null,
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: const Color(0xFFFF4F18).withOpacity(0.3),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : null,
           border: Border.all(
-            color: isSelected ? const Color(0xFFFF4F18) : const Color(0xFFE2E8F0),
+            color: isSelected
+                ? const Color(0xFFFF4F18)
+                : const Color(0xFFE2E8F0),
           ),
         ),
         child: Text(
@@ -1269,18 +1551,26 @@ class _MenuItemCard extends StatelessWidget {
                 Container(
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(24),
+                    ),
                     image: item.image != null && item.image!.isNotEmpty
-                      ? DecorationImage(
-                          image: NetworkImage(item.image!),
-                          fit: BoxFit.cover,
-                        )
-                      : null,
+                        ? DecorationImage(
+                            image: NetworkImage(item.image!),
+                            fit: BoxFit.cover,
+                          )
+                        : null,
                     color: const Color(0xFFF1F5F9),
                   ),
                   child: item.image == null || item.image!.isEmpty
-                    ? const Center(child: Icon(Icons.restaurant_rounded, color: Color(0xFFCBD5E1), size: 36))
-                    : null,
+                      ? const Center(
+                          child: Icon(
+                            Icons.restaurant_rounded,
+                            color: Color(0xFFCBD5E1),
+                            size: 36,
+                          ),
+                        )
+                      : null,
                 ),
                 Positioned(
                   top: 10,
@@ -1292,9 +1582,15 @@ class _MenuItemCard extends StatelessWidget {
                       decoration: const BoxDecoration(
                         color: Colors.white,
                         shape: BoxShape.circle,
-                        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)],
+                        boxShadow: [
+                          BoxShadow(color: Colors.black12, blurRadius: 4),
+                        ],
                       ),
-                      child: const Icon(Icons.add_rounded, color: Color(0xFFFF4F18), size: 20),
+                      child: const Icon(
+                        Icons.add_rounded,
+                        color: Color(0xFFFF4F18),
+                        size: 20,
+                      ),
                     ),
                   ),
                 ),
@@ -1316,17 +1612,30 @@ class _MenuItemCard extends StatelessWidget {
                         item.name,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: Color(0xFF1E293B)),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 14,
+                          color: Color(0xFF1E293B),
+                        ),
                       ),
                       Text(
                         vendorName.toUpperCase(),
-                        style: const TextStyle(fontSize: 9, color: Color(0xFF94A3B8), fontWeight: FontWeight.w900, letterSpacing: 0.5),
+                        style: const TextStyle(
+                          fontSize: 9,
+                          color: Color(0xFF94A3B8),
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.5,
+                        ),
                       ),
                     ],
                   ),
                   Text(
                     formatCurrency(item.price),
-                    style: const TextStyle(color: Color(0xFFFF4F18), fontWeight: FontWeight.w900, fontSize: 16),
+                    style: const TextStyle(
+                      color: Color(0xFFFF4F18),
+                      fontWeight: FontWeight.w900,
+                      fontSize: 16,
+                    ),
                   ),
                 ],
               ),
@@ -1358,7 +1667,12 @@ class _CompactOrderInput extends StatelessWidget {
       children: [
         Text(
           label,
-          style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1),
+          style: TextStyle(
+            color: Colors.white.withOpacity(0.5),
+            fontSize: 10,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 1,
+          ),
         ),
         const SizedBox(height: 8),
         Container(
@@ -1370,12 +1684,23 @@ class _CompactOrderInput extends StatelessWidget {
           child: TextField(
             controller: controller,
             onChanged: onChanged,
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 14),
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w700,
+              fontSize: 14,
+            ),
             decoration: InputDecoration(
               hintText: hint,
-              hintStyle: TextStyle(color: Colors.white.withOpacity(0.2), fontSize: 13, fontWeight: FontWeight.normal),
+              hintStyle: TextStyle(
+                color: Colors.white.withOpacity(0.2),
+                fontSize: 13,
+                fontWeight: FontWeight.normal,
+              ),
               border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
             ),
           ),
         ),
@@ -1415,12 +1740,19 @@ class _CartItemTile extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               color: Colors.white,
               image: item.image != null && item.image!.isNotEmpty
-                ? DecorationImage(image: NetworkImage(item.image!), fit: BoxFit.cover)
-                : null,
+                  ? DecorationImage(
+                      image: NetworkImage(item.image!),
+                      fit: BoxFit.cover,
+                    )
+                  : null,
             ),
             child: item.image == null || item.image!.isEmpty
-              ? const Icon(Icons.restaurant_rounded, size: 18, color: Color(0xFF94A3B8))
-              : null,
+                ? const Icon(
+                    Icons.restaurant_rounded,
+                    size: 18,
+                    color: Color(0xFF94A3B8),
+                  )
+                : null,
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -1429,13 +1761,21 @@ class _CartItemTile extends StatelessWidget {
               children: [
                 Text(
                   item.name,
-                  style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: Color(0xFF1E293B)),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 14,
+                    color: Color(0xFF1E293B),
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
                   formatCurrency(item.price),
-                  style: const TextStyle(color: Color(0xFFFF4F18), fontSize: 12, fontWeight: FontWeight.w800),
+                  style: const TextStyle(
+                    color: Color(0xFFFF4F18),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ],
             ),
@@ -1445,13 +1785,23 @@ class _CartItemTile extends StatelessWidget {
               _QtyBtn(icon: Icons.remove_rounded, onTap: () => onUpdate(-1)),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 10),
-                child: Text("${item.quantity}", style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
+                child: Text(
+                  "${item.quantity}",
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 14,
+                  ),
+                ),
               ),
               _QtyBtn(icon: Icons.add_rounded, onTap: () => onUpdate(1)),
               const SizedBox(width: 4),
               IconButton(
                 onPressed: onRemove,
-                icon: const Icon(Icons.close_rounded, size: 18, color: Color(0xFFCBD5E1)),
+                icon: const Icon(
+                  Icons.close_rounded,
+                  size: 18,
+                  color: Color(0xFFCBD5E1),
+                ),
                 constraints: const BoxConstraints(),
                 padding: const EdgeInsets.all(4),
               ),

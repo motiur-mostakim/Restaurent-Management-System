@@ -6,6 +6,7 @@ import '../model/order_model.dart';
 
 class WaiterOrdersScreen extends StatefulWidget {
   final bool isTabView;
+
   const WaiterOrdersScreen({super.key, this.isTabView = false});
 
   @override
@@ -35,8 +36,13 @@ class _WaiterOrdersScreenState extends State<WaiterOrdersScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Confirm Handover", style: TextStyle(fontWeight: FontWeight.bold)),
-        content: Text("Are you sure you want to complete handover for Table ${order.tableNumber}?"),
+        title: const Text(
+          "Confirm Handover",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        content: Text(
+          "Are you sure you want to complete handover for Table ${order.tableNumber}?",
+        ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         actions: [
           TextButton(
@@ -45,12 +51,16 @@ class _WaiterOrdersScreenState extends State<WaiterOrdersScreen> {
           ),
           ElevatedButton(
             onPressed: () {
-              Provider.of<WaiterProvider>(context, listen: false)
-                  .completeHandover(order.id, order.paymentMethod);
+              Provider.of<WaiterProvider>(
+                context,
+                listen: false,
+              ).completeHandover(order.id, order.paymentMethod);
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text("Order for Table ${order.tableNumber} delivered"),
+                  content: Text(
+                    "Order for Table ${order.tableNumber} delivered",
+                  ),
                   behavior: SnackBarBehavior.floating,
                   backgroundColor: const Color(0xFF10B981),
                 ),
@@ -58,9 +68,14 @@ class _WaiterOrdersScreenState extends State<WaiterOrdersScreen> {
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF0F172A),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
-            child: const Text("Complete", style: TextStyle(color: Colors.white)),
+            child: const Text(
+              "Complete",
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),
@@ -98,7 +113,11 @@ class _WaiterOrdersScreenState extends State<WaiterOrdersScreen> {
               ),
               borderRadius: BorderRadius.vertical(bottom: Radius.circular(40)),
               boxShadow: [
-                BoxShadow(color: Colors.black26, blurRadius: 25, offset: Offset(0, 10))
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 25,
+                  offset: Offset(0, 10),
+                ),
               ],
             ),
             padding: EdgeInsets.fromLTRB(24, topPadding + 16, 24, 32),
@@ -113,14 +132,23 @@ class _WaiterOrdersScreenState extends State<WaiterOrdersScreen> {
                       children: [
                         const Text(
                           "Orders Tracking",
-                          style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: -1),
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                            letterSpacing: -1,
+                          ),
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          activeTab == 'active' 
-                             ? "Real-time updates on kitchen progress" 
-                             : "Complete transaction history",
-                          style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 13, fontWeight: FontWeight.w500),
+                          activeTab == 'active'
+                              ? "Real-time updates on kitchen progress"
+                              : "Complete transaction history",
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.5),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ],
                     ),
@@ -129,9 +157,15 @@ class _WaiterOrdersScreenState extends State<WaiterOrdersScreen> {
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.08),
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white.withOpacity(0.1)),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.1),
+                        ),
                       ),
-                      child: const Icon(Icons.radar_rounded, color: Color(0xFFFF4F18), size: 24),
+                      child: const Icon(
+                        Icons.radar_rounded,
+                        color: Color(0xFFFF4F18),
+                        size: 24,
+                      ),
                     ),
                   ],
                 ),
@@ -207,12 +241,19 @@ class _WaiterOrdersScreenState extends State<WaiterOrdersScreen> {
                           decoration: BoxDecoration(
                             color: Colors.white,
                             shape: BoxShape.circle,
-                            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 30)],
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.03),
+                                blurRadius: 30,
+                              ),
+                            ],
                           ),
                           child: Icon(
-                            activeTab == 'active' ? Icons.upcoming_rounded : Icons.receipt_long_rounded, 
-                            size: 64, 
-                            color: Colors.grey[200]
+                            activeTab == 'active'
+                                ? Icons.upcoming_rounded
+                                : Icons.receipt_long_rounded,
+                            size: 64,
+                            color: Colors.grey[200],
                           ),
                         ),
                         const SizedBox(height: 24),
@@ -275,21 +316,35 @@ class _HeaderTab extends StatelessWidget {
           decoration: BoxDecoration(
             color: isSelected ? const Color(0xFFFF4F18) : Colors.transparent,
             borderRadius: BorderRadius.circular(16),
-            boxShadow: isSelected ? [
-              BoxShadow(color: const Color(0xFFFF4F18).withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 4))
-            ] : null,
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: const Color(0xFFFF4F18).withOpacity(0.3),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ]
+                : null,
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 16, color: isSelected ? Colors.white : Colors.white.withOpacity(0.4)),
+              Icon(
+                icon,
+                size: 16,
+                color: isSelected
+                    ? Colors.white
+                    : Colors.white.withOpacity(0.4),
+              ),
               const SizedBox(width: 8),
               Text(
                 label,
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w900,
-                  color: isSelected ? Colors.white : Colors.white.withOpacity(0.4),
+                  color: isSelected
+                      ? Colors.white
+                      : Colors.white.withOpacity(0.4),
                 ),
               ),
             ],
@@ -321,7 +376,9 @@ class _FilterChip extends StatelessWidget {
           color: isSelected ? const Color(0xFF1E293B) : Colors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
+            color: isSelected
+                ? const Color(0xFF1E293B)
+                : const Color(0xFFE2E8F0),
           ),
         ),
         child: Text(
@@ -369,7 +426,12 @@ class _OrderCard extends StatelessWidget {
             offset: const Offset(0, 12),
           ),
         ],
-        border: isReady ? Border.all(color: const Color(0xFF10B981).withOpacity(0.4), width: 2) : null,
+        border: isReady
+            ? Border.all(
+                color: const Color(0xFF10B981).withOpacity(0.4),
+                width: 2,
+              )
+            : null,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -388,7 +450,11 @@ class _OrderCard extends StatelessWidget {
                         color: const Color(0xFFF1F5F9),
                         borderRadius: BorderRadius.circular(16),
                       ),
-                      child: const Icon(Icons.confirmation_number_rounded, color: Color(0xFF64748B), size: 22),
+                      child: const Icon(
+                        Icons.confirmation_number_rounded,
+                        color: Color(0xFF64748B),
+                        size: 22,
+                      ),
                     ),
                     const SizedBox(width: 16),
                     Column(
@@ -396,28 +462,48 @@ class _OrderCard extends StatelessWidget {
                       children: [
                         Text(
                           "Table ${order.tableNumber}",
-                          style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: Color(0xFF0F172A), letterSpacing: -0.5),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w900,
+                            fontSize: 18,
+                            color: Color(0xFF0F172A),
+                            letterSpacing: -0.5,
+                          ),
                         ),
                         Text(
                           DateFormat('hh:mm a').format(order.createdAt),
-                          style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8), fontWeight: FontWeight.w700),
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: Color(0xFF94A3B8),
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                       ],
                     ),
                   ],
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                  decoration: BoxDecoration(color: statusBg, borderRadius: BorderRadius.circular(14)),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: statusBg,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
                   child: Text(
                     order.status.toUpperCase(),
-                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: statusColor, letterSpacing: 0.8),
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w900,
+                      color: statusColor,
+                      letterSpacing: 0.8,
+                    ),
                   ),
                 ),
               ],
             ),
           ),
-          
+
           const Divider(height: 1, thickness: 0.1, indent: 24, endIndent: 24),
 
           // Items with Images
@@ -425,7 +511,9 @@ class _OrderCard extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(24, 20, 24, 12),
             child: Column(
               children: order.items.map((item) {
-                if (activeTab == 'history' && vendorFilter != 'all' && item.vendorId != vendorFilter) {
+                if (activeTab == 'history' &&
+                    vendorFilter != 'all' &&
+                    item.vendorId != vendorFilter) {
                   return const SizedBox.shrink();
                 }
                 return Padding(
@@ -440,14 +528,25 @@ class _OrderCard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(16),
                           color: const Color(0xFFF1F5F9),
                           image: (item.image != null && item.image!.isNotEmpty)
-                              ? DecorationImage(image: NetworkImage(item.image!), fit: BoxFit.cover)
+                              ? DecorationImage(
+                                  image: NetworkImage(item.image!),
+                                  fit: BoxFit.cover,
+                                )
                               : null,
                           boxShadow: [
-                            BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 6, offset: const Offset(0, 3))
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.04),
+                              blurRadius: 6,
+                              offset: const Offset(0, 3),
+                            ),
                           ],
                         ),
                         child: (item.image == null || item.image!.isEmpty)
-                            ? const Icon(Icons.fastfood_outlined, size: 24, color: Color(0xFFCBD5E1))
+                            ? const Icon(
+                                Icons.fastfood_outlined,
+                                size: 24,
+                                color: Color(0xFFCBD5E1),
+                              )
                             : null,
                       ),
                       const SizedBox(width: 16),
@@ -457,7 +556,11 @@ class _OrderCard extends StatelessWidget {
                           children: [
                             Text(
                               "${item.name} x ${item.quantity}",
-                              style: const TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF1E293B), fontSize: 15),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w800,
+                                color: Color(0xFF1E293B),
+                                fontSize: 15,
+                              ),
                             ),
                             const SizedBox(height: 4),
                             Row(
@@ -467,7 +570,9 @@ class _OrderCard extends StatelessWidget {
                                   height: 8,
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
-                                    color: item.status == 'ready' ? const Color(0xFF10B981) : const Color(0xFFFF9F1C),
+                                    color: item.status == 'ready'
+                                        ? const Color(0xFF10B981)
+                                        : const Color(0xFFFF9F1C),
                                   ),
                                 ),
                                 const SizedBox(width: 6),
@@ -476,7 +581,9 @@ class _OrderCard extends StatelessWidget {
                                   style: TextStyle(
                                     fontSize: 9,
                                     fontWeight: FontWeight.w900,
-                                    color: item.status == 'ready' ? const Color(0xFF10B981) : const Color(0xFFFF9F1C),
+                                    color: item.status == 'ready'
+                                        ? const Color(0xFF10B981)
+                                        : const Color(0xFFFF9F1C),
                                     letterSpacing: 0.5,
                                   ),
                                 ),
@@ -503,12 +610,21 @@ class _OrderCard extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.lightbulb_outline_rounded, size: 18, color: Color(0xFF9A3412)),
+                  const Icon(
+                    Icons.lightbulb_outline_rounded,
+                    size: 18,
+                    color: Color(0xFF9A3412),
+                  ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       order.notes!,
-                      style: const TextStyle(fontSize: 13, color: Color(0xFF9A3412), fontStyle: FontStyle.italic, fontWeight: FontWeight.w600),
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Color(0xFF9A3412),
+                        fontStyle: FontStyle.italic,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ],
@@ -519,8 +635,12 @@ class _OrderCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: isReady ? const Color(0xFFF0FDF4) : const Color(0xFFF8FAFC),
-              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(35)),
+              color: isReady
+                  ? const Color(0xFFF0FDF4)
+                  : const Color(0xFFF8FAFC),
+              borderRadius: const BorderRadius.vertical(
+                bottom: Radius.circular(35),
+              ),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -528,15 +648,32 @@ class _OrderCard extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text("PAID AMOUNT", style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Color(0xFF94A3B8), letterSpacing: 1.2)),
+                    const Text(
+                      "PAID AMOUNT",
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF94A3B8),
+                        letterSpacing: 1.2,
+                      ),
+                    ),
                     Text(
                       formatCurrency(order.totalAmount),
-                      style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFFF4F18), fontSize: 24, letterSpacing: -0.5),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFFFF4F18),
+                        fontSize: 24,
+                        letterSpacing: -0.5,
+                      ),
                     ),
                     if (order.paymentMethod != null)
                       Text(
                         "Paid via ${order.paymentMethod?.toUpperCase()}",
-                        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Color(0xFF10B981)),
+                        style: const TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF10B981),
+                        ),
                       ),
                   ],
                 ),
@@ -546,13 +683,24 @@ class _OrderCard extends StatelessWidget {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF0F172A),
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 16,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18),
+                      ),
                       elevation: 0,
                     ),
                     child: const Row(
                       children: [
-                        Text("Handover", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15)),
+                        Text(
+                          "Handover",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w900,
+                            fontSize: 15,
+                          ),
+                        ),
                         SizedBox(width: 10),
                         Icon(Icons.arrow_forward_rounded, size: 18),
                       ],
@@ -568,19 +716,27 @@ class _OrderCard extends StatelessWidget {
 
   Color _getStatusColor(String status) {
     switch (status) {
-      case 'ready': return const Color(0xFF166534);
-      case 'pending': return const Color(0xFF9A3412);
-      case 'delivered': return const Color(0xFF64748B);
-      default: return const Color(0xFF1D4ED8);
+      case 'ready':
+        return const Color(0xFF166534);
+      case 'pending':
+        return const Color(0xFF9A3412);
+      case 'delivered':
+        return const Color(0xFF64748B);
+      default:
+        return const Color(0xFF1D4ED8);
     }
   }
 
   Color _getStatusBg(String status) {
     switch (status) {
-      case 'ready': return const Color(0xFFDCFCE7);
-      case 'pending': return const Color(0xFFFFEDD5);
-      case 'delivered': return const Color(0xFFF1F5F9);
-      default: return const Color(0xFFEFF6FF);
+      case 'ready':
+        return const Color(0xFFDCFCE7);
+      case 'pending':
+        return const Color(0xFFFFEDD5);
+      case 'delivered':
+        return const Color(0xFFF1F5F9);
+      default:
+        return const Color(0xFFEFF6FF);
     }
   }
 }
