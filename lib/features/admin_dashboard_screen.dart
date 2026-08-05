@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../provider/dashboard_provider.dart';
 import 'admin_menu_screen.dart';
 import 'bookings_management_screen.dart';
 import 'profile_details_screen.dart';
+import '../model/user_model.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -33,39 +35,54 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         index: _selectedIndex,
         children: _pages,
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: const Color(0xFFFF4F18),
-        unselectedItemColor: const Color(0xFF64748B),
-        showUnselectedLabels: true,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard_outlined),
-            activeIcon: Icon(Icons.dashboard),
-            label: 'Dashboard',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.restaurant_menu_outlined),
-            activeIcon: Icon(Icons.restaurant_menu),
-            label: 'Menu',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_month_outlined),
-            activeIcon: Icon(Icons.calendar_month),
-            label: 'Bookings',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, -5),
+            ),
+          ],
+        ),
+        child: BottomNavigationBar(
+          currentIndex: _selectedIndex,
+          onTap: (index) {
+            setState(() {
+              _selectedIndex = index;
+            });
+          },
+          type: BottomNavigationBarType.fixed,
+          backgroundColor: Colors.white,
+          selectedItemColor: const Color(0xFFFF4F18),
+          unselectedItemColor: const Color(0xFF94A3B8),
+          showUnselectedLabels: true,
+          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 12),
+          elevation: 0,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.dashboard_outlined),
+              activeIcon: Icon(Icons.dashboard_rounded),
+              label: 'Dashboard',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.restaurant_menu_outlined),
+              activeIcon: Icon(Icons.restaurant_menu_rounded),
+              label: 'Menu',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.calendar_month_outlined),
+              activeIcon: Icon(Icons.calendar_month_rounded),
+              label: 'Bookings',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person_outline_rounded),
+              activeIcon: Icon(Icons.person_rounded),
+              label: 'Profile',
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -111,7 +128,6 @@ class _AdminAnalyticsViewState extends State<_AdminAnalyticsView> {
     final provider = Provider.of<DashboardProvider>(context);
     final vendors = provider.vendors;
 
-    // Calculate max revenue for chart scaling
     double maxRevenue = 0;
     for (var v in vendors) {
       final rev = provider.vendorRevenues[v.id] ?? 0;
@@ -123,7 +139,7 @@ class _AdminAnalyticsViewState extends State<_AdminAnalyticsView> {
       appBar: AppBar(
         title: const Text(
           "Admin Analytics",
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+          style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
         ),
         backgroundColor: Colors.white,
         elevation: 0,
@@ -136,7 +152,6 @@ class _AdminAnalyticsViewState extends State<_AdminAnalyticsView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Stats Grid
                   GridView.count(
                     crossAxisCount: 2,
                     shrinkWrap: true,
@@ -180,20 +195,25 @@ class _AdminAnalyticsViewState extends State<_AdminAnalyticsView> {
                     ],
                   ),
                   const SizedBox(height: 24),
-                  // Vendor Performance
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.03),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
                           "Vendor Performance",
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
                         ),
                         const SizedBox(height: 24),
                         vendors.isEmpty
@@ -219,13 +239,18 @@ class _AdminAnalyticsViewState extends State<_AdminAnalyticsView> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  // Revenue by Vendor Chart
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.03),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -238,6 +263,7 @@ class _AdminAnalyticsViewState extends State<_AdminAnalyticsView> {
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
+                                color: Color(0xFF0F172A),
                               ),
                             ),
                             Wrap(
@@ -277,6 +303,7 @@ class _AdminAnalyticsViewState extends State<_AdminAnalyticsView> {
                                             style: const TextStyle(
                                               color: Color(0xFF94A3B8),
                                               fontSize: 10,
+                                              fontWeight: FontWeight.bold,
                                             ),
                                           ),
                                         );
@@ -327,8 +354,8 @@ class _AdminAnalyticsViewState extends State<_AdminAnalyticsView> {
                                       color: getVendorColor(index),
                                       width: 40,
                                       borderRadius: const BorderRadius.only(
-                                        topLeft: Radius.circular(6),
-                                        topRight: Radius.circular(6),
+                                        topLeft: Radius.circular(8),
+                                        topRight: Radius.circular(8),
                                       ),
                                     ),
                                   ],
@@ -341,12 +368,17 @@ class _AdminAnalyticsViewState extends State<_AdminAnalyticsView> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  // Recent Orders
                   Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.03),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
                     ),
                     child: Column(
                       children: [
@@ -360,6 +392,7 @@ class _AdminAnalyticsViewState extends State<_AdminAnalyticsView> {
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
+                                  color: Color(0xFF0F172A),
                                 ),
                               ),
                               TextButton(
@@ -406,7 +439,7 @@ class _AdminAnalyticsViewState extends State<_AdminAnalyticsView> {
                               ),
                               title: Text(
                                 "Table ${order.tableNumber}",
-                                style: const TextStyle(fontWeight: FontWeight.w600),
+                                style: const TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF1E293B)),
                               ),
                               subtitle: Padding(
                                 padding: const EdgeInsets.only(top: 4.0),
@@ -421,7 +454,7 @@ class _AdminAnalyticsViewState extends State<_AdminAnalyticsView> {
                                         color: order.status == 'delivered'
                                             ? const Color(0xFFDCFCE7)
                                             : const Color(0xFFFFEDD5),
-                                        borderRadius: BorderRadius.circular(4),
+                                        borderRadius: BorderRadius.circular(6),
                                       ),
                                       child: Text(
                                         order.status.toUpperCase(),
@@ -447,7 +480,7 @@ class _AdminAnalyticsViewState extends State<_AdminAnalyticsView> {
                               ),
                               trailing: Text(
                                 formatCurrency(order.totalAmount),
-                                style: const TextStyle(fontWeight: FontWeight.bold),
+                                style: const TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
                               ),
                             );
                           },
@@ -476,122 +509,497 @@ class _AdminProfileViewState extends State<_AdminProfileView> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        title: const Text(
-          "Profile",
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
-        ),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: false,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            const CircleAvatar(
-              radius: 50,
-              backgroundColor: Color(0xFFFF4F18),
-              child: Icon(Icons.person, size: 50, color: Colors.white),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              user?.displayName ?? "Admin User",
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
-            Text(
-              user?.email ?? "admin@restaurant.com",
-              style: const TextStyle(color: Color(0xFF64748B)),
-            ),
-            const SizedBox(height: 32),
-            _ProfileMenuItem(
-              icon: Icons.person_outline,
-              title: "Account Details",
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const ProfileDetailsScreen()),
-                ).then((_) => setState(() {})); // Refresh profile view after update
-              },
-            ),
-            _ProfileMenuItem(
-              icon: Icons.notifications_none,
-              title: "Notifications",
-              onTap: () {},
-            ),
-            _ProfileMenuItem(
-              icon: Icons.security,
-              title: "Security",
-              onTap: () {},
-            ),
-            const Divider(height: 40),
-            _ProfileMenuItem(
-              icon: Icons.logout,
-              title: "Logout",
-              textColor: Colors.red,
-              iconColor: Colors.red,
-              onTap: () {
-                showDialog(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: const Text("Logout"),
-                    content: const Text("Are you sure you want to logout?"),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text("Cancel"),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                          FirebaseAuth.instance.signOut();
-                        },
-                        child: const Text(
-                          "Logout",
-                          style: TextStyle(color: Colors.red),
+      body: StreamBuilder<DocumentSnapshot>(
+        stream: FirebaseFirestore.instance.collection('users').doc(user?.uid).snapshots(),
+        builder: (context, snapshot) {
+          UserModel? userData;
+          if (snapshot.hasData && snapshot.data!.exists) {
+            userData = UserModel.fromFirestore(snapshot.data!);
+          }
+
+          return CustomScrollView(
+            physics: const BouncingScrollPhysics(),
+            slivers: [
+              SliverAppBar(
+                expandedHeight: 320,
+                floating: false,
+                pinned: true,
+                backgroundColor: const Color(0xFF0F172A),
+                elevation: 0,
+                flexibleSpace: FlexibleSpaceBar(
+                  background: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      Container(
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
                         ),
+                      ),
+                      // Modern decorative background elements
+                      Positioned(
+                        top: -100,
+                        right: -100,
+                        child: Container(
+                          width: 300,
+                          height: 300,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: RadialGradient(
+                              colors: [const Color(0xFFFF4F18).withOpacity(0.15), Colors.transparent],
+                            ),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        child: Container(
+                          height: 100,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [Colors.transparent, const Color(0xFFF8FAFC).withOpacity(0.5)],
+                            ),
+                          ),
+                        ),
+                      ),
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const SizedBox(height: 60),
+                          Hero(
+                            tag: 'profile_avatar',
+                            child: Stack(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: const Color(0xFFFF4F18).withOpacity(0.5), width: 2),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: const Color(0xFFFF4F18).withOpacity(0.2),
+                                        blurRadius: 20,
+                                        spreadRadius: 5,
+                                      ),
+                                    ],
+                                  ),
+                                  child: const CircleAvatar(
+                                    radius: 55,
+                                    backgroundColor: Color(0xFF1E293B),
+                                    child: Icon(Icons.person_rounded, size: 60, color: Colors.white),
+                                  ),
+                                ),
+                                Positioned(
+                                  bottom: 4,
+                                  right: 4,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(6),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFFF4F18),
+                                      shape: BoxShape.circle,
+                                      border: Border.all(color: const Color(0xFF1E293B), width: 2),
+                                    ),
+                                    child: const Icon(Icons.camera_alt_rounded, size: 14, color: Colors.white),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          Text(
+                            userData?.name ?? user?.displayName ?? "Admin User",
+                            style: const TextStyle(
+                              fontSize: 26,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(30),
+                              border: Border.all(color: Colors.white.withOpacity(0.2)),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.verified_user_rounded, size: 14, color: Color(0xFFFF4F18)),
+                                const SizedBox(width: 8),
+                                Text(
+                                  (userData?.role ?? "ADMIN").toUpperCase(),
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 1.5,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                );
-              },
-            ),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Transform.translate(
+                  offset: const Offset(0, -30),
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(35)),
+                    ),
+                    padding: const EdgeInsets.fromLTRB(20, 40, 20, 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSectionHeader("PERSONAL DETAILS"),
+                        const SizedBox(height: 16),
+                        _buildInfoCard(
+                          items: [
+                            _InfoItem(
+                              icon: Icons.alternate_email_rounded,
+                              label: "Email Address",
+                              value: userData?.email ?? user?.email ?? "N/A",
+                            ),
+                            _InfoItem(
+                              icon: Icons.phone_android_rounded,
+                              label: "Phone Number",
+                              value: (userData?.phone != null && userData!.phone!.isNotEmpty) 
+                                ? userData.phone! 
+                                : "Not linked",
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 32),
+                        _buildSectionHeader("MANAGEMENT"),
+                        const SizedBox(height: 16),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(28),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.04),
+                                blurRadius: 24,
+                                offset: const Offset(0, 12),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            children: [
+                              _ProfileMenuItem(
+                                icon: Icons.manage_accounts_rounded,
+                                title: "Edit Account",
+                                subtitle: "Update name and phone contact",
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => const ProfileDetailsScreen()),
+                                  ).then((_) => setState(() {}));
+                                },
+                              ),
+                              _buildItemDivider(),
+                              _ProfileMenuItem(
+                                icon: Icons.notifications_active_rounded,
+                                title: "Notifications",
+                                subtitle: "Customize your alert preferences",
+                                onTap: () {},
+                              ),
+                              _buildItemDivider(),
+                              _ProfileMenuItem(
+                                icon: Icons.shield_rounded,
+                                title: "Security & Privacy",
+                                subtitle: "Change password and lock settings",
+                                onTap: () {},
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+                        _buildSectionHeader("DANGER ZONE"),
+                        const SizedBox(height: 16),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(28),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.04),
+                                blurRadius: 24,
+                                offset: const Offset(0, 12),
+                              ),
+                            ],
+                          ),
+                          child: _ProfileMenuItem(
+                            icon: Icons.power_settings_new_rounded,
+                            title: "Sign Out",
+                            subtitle: "Safely exit your current session",
+                            textColor: Colors.red.shade600,
+                            iconColor: Colors.red.shade600,
+                            showTrailing: false,
+                            onTap: () => _showLogoutDialog(context),
+                          ),
+                        ),
+                        const SizedBox(height: 50),
+                        Center(
+                          child: Column(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFE2E8F0),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Text(
+                                  "THE CIRCLE CAFE",
+                                  style: TextStyle(
+                                    color: Color(0xFF64748B),
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 3,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              const Text(
+                                "Build 2024.1.0 (PRO)",
+                                style: TextStyle(color: Color(0xFFCBD5E1), fontSize: 10, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 40),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildItemDivider() {
+    return const Padding(
+      padding: EdgeInsets.only(left: 72, right: 20),
+      child: Divider(height: 1, color: Color(0xFFF1F5F9)),
+    );
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 12.0),
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w900,
+          color: Color(0xFF94A3B8),
+          letterSpacing: 2,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoCard({required List<_InfoItem> items}) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 24,
+            offset: const Offset(0, 12),
+          ),
+        ],
+      ),
+      child: Column(
+        children: items.map((item) {
+          final isLast = items.indexOf(item) == items.length - 1;
+          return Column(
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                    ),
+                    child: Icon(item.icon, color: const Color(0xFF64748B), size: 22),
+                  ),
+                  const SizedBox(width: 20),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item.label.toUpperCase(),
+                          style: const TextStyle(
+                            color: Color(0xFF94A3B8),
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          item.value,
+                          style: const TextStyle(
+                            color: Color(0xFF0F172A),
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              if (!isLast) const Padding(
+                padding: EdgeInsets.symmetric(vertical: 16.0),
+                child: Divider(height: 1, color: Color(0xFFF1F5F9)),
+              ),
+            ],
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        title: const Row(
+          children: [
+            Icon(Icons.logout_rounded, color: Colors.red),
+            SizedBox(width: 12),
+            Text("Sign Out", style: TextStyle(fontWeight: FontWeight.w900)),
           ],
         ),
+        content: const Text("Are you sure you want to end your current session? You'll need to login again to access the dashboard."),
+        actionsPadding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("CANCEL", style: TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.w900, letterSpacing: 1)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              FirebaseAuth.instance.signOut();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red.shade600,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            ),
+            child: const Text("LOGOUT", style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1)),
+          ),
+        ],
       ),
     );
   }
 }
 
+class _InfoItem {
+  final IconData icon;
+  final String label;
+  final String value;
+
+  _InfoItem({required this.icon, required this.label, required this.value});
+}
+
 class _ProfileMenuItem extends StatelessWidget {
   final IconData icon;
   final String title;
+  final String? subtitle;
   final VoidCallback onTap;
   final Color? textColor;
   final Color? iconColor;
+  final bool showTrailing;
 
   const _ProfileMenuItem({
     required this.icon,
     required this.title,
+    this.subtitle,
     required this.onTap,
     this.textColor,
     this.iconColor,
+    this.showTrailing = true,
   });
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
+    return InkWell(
       onTap: onTap,
-      leading: Icon(icon, color: iconColor ?? const Color(0xFF1E293B)),
-      title: Text(
-        title,
-        style: TextStyle(
-          fontWeight: FontWeight.w500,
-          color: textColor ?? const Color(0xFF1E293B),
+      borderRadius: BorderRadius.circular(28),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: (iconColor ?? const Color(0xFFFF4F18)).withOpacity(0.08),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(icon, color: iconColor ?? const Color(0xFFFF4F18), size: 24),
+            ),
+            const SizedBox(width: 20),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      color: textColor ?? const Color(0xFF0F172A),
+                      fontSize: 16,
+                    ),
+                  ),
+                  if (subtitle != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle!,
+                      style: const TextStyle(
+                        color: Color(0xFF94A3B8),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            if (showTrailing)
+              const Icon(Icons.chevron_right_rounded, size: 24, color: Color(0xFFCBD5E1)),
+          ],
         ),
       ),
-      trailing: const Icon(Icons.chevron_right, size: 20, color: Color(0xFF94A3B8)),
-      contentPadding: const EdgeInsets.symmetric(vertical: 4),
     );
   }
 }
