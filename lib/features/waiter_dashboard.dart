@@ -132,22 +132,15 @@ class _WaiterHomeViewState extends State<_WaiterHomeView> {
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<WaiterProvider>(context);
+    final filteredOrders = provider.filteredOrdersByDate;
 
-    final now = DateTime.now();
-    bool isToday(DateTime date) =>
-        date.year == now.year && date.month == now.month && date.day == now.day;
-
-    final todayOrders = provider.orders
-        .where((o) => isToday(o.createdAt))
-        .toList();
-
-    int totalOrdersToday = todayOrders.length;
-    int pendingOrders = todayOrders.where((o) => o.status == 'pending').length;
-    int deliveredOrders = todayOrders
+    int totalOrders = filteredOrders.length;
+    int pendingOrders = filteredOrders.where((o) => o.status == 'pending').length;
+    int deliveredOrders = filteredOrders
         .where((o) => o.status == 'delivered')
         .length;
-    int readyOrders = todayOrders.where((o) => o.status == 'ready').length;
-    double totalSellToday = todayOrders
+    int readyOrders = filteredOrders.where((o) => o.status == 'ready').length;
+    double totalSell = filteredOrders
         .where((o) => o.status == 'delivered')
         .fold(0.0, (sum, o) => sum + o.totalAmount);
 
@@ -165,6 +158,35 @@ class _WaiterHomeViewState extends State<_WaiterHomeView> {
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: false,
+        actions: [
+          Container(
+            margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value: provider.dateFilter,
+                icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 20, color: Color(0xFF64748B)),
+                style: const TextStyle(color: Color(0xFF1E293B), fontWeight: FontWeight.w700, fontSize: 13),
+                onChanged: (String? newValue) {
+                  if (newValue != null) {
+                    provider.setDateFilter(newValue);
+                  }
+                },
+                items: <String>['Today', 'This Week', 'This Month', 'This Year', 'All']
+                    .map<DropdownMenuItem<String>>((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -198,14 +220,14 @@ class _WaiterHomeViewState extends State<_WaiterHomeView> {
                   color: const Color(0xFF10B981),
                 ),
                 _StatCard(
-                  title: "Today Order",
-                  value: totalOrdersToday.toString(),
+                  title: "${provider.dateFilter} Order",
+                  value: totalOrders.toString(),
                   icon: Icons.shopping_bag_outlined,
                   color: const Color(0xFF6366F1),
                 ),
                 _StatCard(
                   title: "Total Sell",
-                  value: formatCurrency(totalSellToday),
+                  value: formatCurrency(totalSell),
                   icon: Icons.payments_outlined,
                   color: const Color(0xFFFF4F18),
                 ),
@@ -411,7 +433,7 @@ class _WaiterHomeViewState extends State<_WaiterHomeView> {
               ],
             ),
             const SizedBox(height: 16),
-            provider.orders.isEmpty
+            filteredOrders.isEmpty
                 ? const Center(
                     child: Padding(
                       padding: EdgeInsets.all(40.0),
@@ -424,11 +446,11 @@ class _WaiterHomeViewState extends State<_WaiterHomeView> {
                 : ListView.separated(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    itemCount: provider.orders.take(10).length,
+                    itemCount: filteredOrders.take(10).length,
                     separatorBuilder: (context, index) =>
                         const SizedBox(height: 12),
                     itemBuilder: (context, index) {
-                      final order = provider.orders[index];
+                      final order = filteredOrders[index];
                       return InkWell(
                         onTap: () => widget.onNavigate(1),
                         borderRadius: BorderRadius.circular(20),

@@ -17,10 +17,42 @@ class DashboardProvider with ChangeNotifier {
   int activeBookings = 0;
   int totalMenuItems = 0;
   bool isLoading = true;
+  String _dateFilter = 'All';
 
   List<OrderModel> recentOrders = [];
 
   final FirebaseFirestore db = FirebaseFirestore.instance;
+
+  String get dateFilter => _dateFilter;
+
+  void setDateFilter(String filter) {
+    _dateFilter = filter;
+    _processOrders(); // Re-process data when filter changes
+    _listenBookings(); // Re-listen/filter bookings
+  }
+
+  bool _isDateInRange(DateTime date) {
+    if (_dateFilter == 'All') return true;
+    
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    
+    switch (_dateFilter) {
+      case 'Today':
+        return date.isAfter(today);
+      case 'This Week':
+        final weekStart = today.subtract(Duration(days: now.weekday - 1));
+        return date.isAfter(weekStart);
+      case 'This Month':
+        final monthStart = DateTime(now.year, now.month, 1);
+        return date.isAfter(monthStart);
+      case 'This Year':
+        final yearStart = DateTime(now.year, 1, 1);
+        return date.isAfter(yearStart);
+      default:
+        return true;
+    }
+  }
 
   Future<void> checkAndSeed() async {
     // Seed Vendors if empty (using 'vendor' collection to match database)
@@ -124,14 +156,7 @@ class DashboardProvider with ChangeNotifier {
       _processOrders();
     });
 
-    db
-        .collection('bookings')
-        .where('status', isEqualTo: 'confirmed')
-        .snapshots()
-        .listen((snapshot) {
-          activeBookings = snapshot.size;
-          notifyListeners();
-        });
+    _listenBookings();
 
     db.collection('menu_items').snapshots().listen((snapshot) {
       totalMenuItems = snapshot.size;
@@ -139,10 +164,30 @@ class DashboardProvider with ChangeNotifier {
     });
   }
 
+  void _listenBookings() {
+    db
+        .collection('bookings')
+        .where('status', isEqualTo: 'confirmed')
+        .snapshots()
+        .listen((snapshot) {
+          int count = 0;
+          for (var doc in snapshot.docs) {
+            final data = doc.data();
+            final Timestamp? ts = data['startDate'] as Timestamp?;
+            if (ts != null && _isDateInRange(ts.toDate())) {
+              count++;
+            }
+          }
+          activeBookings = count;
+          notifyListeners();
+        });
+  }
+
   void _processOrders() async {
     final orderSnap = await db.collection('orders').get();
     
     double sales = 0;
+    int ordersCount = 0;
     Map<String, double> revenues = {};
     Map<String, int> counts = {};
 
@@ -152,12 +197,19 @@ class DashboardProvider with ChangeNotifier {
       counts[v.id] = 0;
     }
 
-    List<OrderModel> orders = orderSnap.docs
+    List<OrderModel> allOrders = orderSnap.docs
         .map((doc) => OrderModel.fromFirestore(doc))
         .toList();
 
-    for (var order in orders) {
+    List<OrderModel> filteredOrders = [];
+
+    for (var order in allOrders) {
+      if (!_isDateInRange(order.createdAt)) continue;
+
+      filteredOrders.add(order);
       sales += order.totalAmount;
+      ordersCount++;
+      
       Set<String> orderVendors = {};
 
       for (var item in order.items) {
@@ -172,12 +224,12 @@ class DashboardProvider with ChangeNotifier {
     }
 
     totalSales = sales;
-    totalOrders = orderSnap.size;
+    totalOrders = ordersCount;
     vendorRevenues = revenues;
     vendorOrdersCount = counts;
 
-    orders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-    recentOrders = orders.take(5).toList();
+    filteredOrders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    recentOrders = filteredOrders.take(5).toList();
     
     isLoading = false;
     notifyListeners();

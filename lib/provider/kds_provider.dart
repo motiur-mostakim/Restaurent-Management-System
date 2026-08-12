@@ -4,22 +4,91 @@ import '../model/order_model.dart';
 
 class KdsProvider with ChangeNotifier {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
-  List<OrderModel> _orders = [];
-  double _totalSales = 0;
-  String _vendorType = ''; // Empty string means "All Vendors"
+  List<OrderModel> _allOrders = []; // Cached vendor-specific orders
+  String _vendorType = ''; 
   String _activeTab = 'live';
   bool _isLoading = false;
+  String _searchQuery = '';
+  String _sortBy = 'time'; // 'time' or 'table'
+  String _dateFilter = 'All'; // 'Today', 'This Week', 'This Month', 'This Year', 'All'
 
-  List<OrderModel> get orders => _orders;
-  double get totalSales => _totalSales;
+  // Getter for the list of orders to display
+  List<OrderModel> get orders {
+    List<OrderModel> filtered = _allOrders.where((order) {
+      // Date filtering
+      if (!_isDateInRange(order.createdAt)) return false;
+
+      // Tab filtering
+      List<String> statuses = _activeTab == 'live' 
+          ? ['pending', 'preparing', 'ready'] 
+          : ['delivered'];
+      
+      bool matchesTab = statuses.contains(order.status);
+      if (!matchesTab) return false;
+
+      // Search filtering
+      if (_searchQuery.isNotEmpty) {
+        bool matchesSearch = order.tableNumber.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+                            order.id.toLowerCase().contains(_searchQuery.toLowerCase());
+        if (!matchesSearch) return false;
+      }
+
+      return true;
+    }).toList();
+    
+    // Sorting logic
+    if (_sortBy == 'table') {
+      filtered.sort((a, b) => a.tableNumber.compareTo(b.tableNumber));
+    } else {
+      if (_activeTab == 'live') {
+        filtered.sort((a, b) => a.createdAt.compareTo(b.createdAt)); // Oldest first (FIFO)
+      } else {
+        filtered.sort((a, b) => b.createdAt.compareTo(a.createdAt)); // Newest first
+      }
+    }
+    return filtered;
+  }
+
+  // Dashboard Stats
+  int get pendingCount => _allOrders.where((o) => o.status == 'pending' && _isDateInRange(o.createdAt)).length;
+  int get readyCount => _allOrders.where((o) => o.status == 'ready' && _isDateInRange(o.createdAt)).length;
+  int get completedCount => _allOrders.where((o) => o.status == 'delivered' && _isDateInRange(o.createdAt)).length;
+  int get activeCount => _allOrders.where((o) => ['pending', 'preparing', 'ready'].contains(o.status) && _isDateInRange(o.createdAt)).length;
+  
+  double get totalSales {
+    double sales = 0;
+    for (var order in _allOrders) {
+      if (order.status == 'delivered' && _isDateInRange(order.createdAt)) {
+        for (var item in order.items) {
+          bool isMyVendor = _vendorType.isEmpty || item.vendorId == _vendorType;
+          if (isMyVendor && item.status == 'delivered') {
+            sales += item.price * item.quantity;
+          }
+        }
+      }
+    }
+    return sales;
+  }
+
   String get vendorType => _vendorType;
   String get activeTab => _activeTab;
   bool get isLoading => _isLoading;
+  String get searchQuery => _searchQuery;
+  String get sortBy => _sortBy;
+  String get dateFilter => _dateFilter;
 
-  set vendorType(String value) {
-    _vendorType = value;
-    listenOrders();
-    calculateTotalSales();
+  void setDateFilter(String filter) {
+    _dateFilter = filter;
+    notifyListeners();
+  }
+
+  void setSearchQuery(String query) {
+    _searchQuery = query;
+    notifyListeners();
+  }
+
+  void setSortBy(String sort) {
+    _sortBy = sort;
     notifyListeners();
   }
 
@@ -27,14 +96,12 @@ class KdsProvider with ChangeNotifier {
     if (_vendorType != vendorId) {
       _vendorType = vendorId;
       listenOrders();
-      calculateTotalSales();
       notifyListeners();
     }
   }
 
   set activeTab(String value) {
     _activeTab = value;
-    listenOrders();
     notifyListeners();
   }
 
@@ -42,67 +109,55 @@ class KdsProvider with ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    List<String> statuses = _activeTab == 'live' 
-        ? ['pending', 'preparing', 'ready'] 
-        : ['delivered'];
+    _db.collection('orders').snapshots().listen((snapshot) {
+      List<OrderModel> orders = snapshot.docs.map((doc) => OrderModel.fromFirestore(doc)).toList();
 
-    _db
-        .collection('orders')
-        .where('status', whereIn: statuses)
-        .snapshots()
-        .listen((snapshot) {
-      List<OrderModel> allOrders =
-          snapshot.docs.map((doc) => OrderModel.fromFirestore(doc)).toList();
-
-      _orders = allOrders.where((order) {
+      // Cache orders that belong to this vendor (or all if empty)
+      _allOrders = orders.where((order) {
         return order.items.any((item) {
-          bool isMyVendor = _vendorType.isEmpty || item.vendorId == _vendorType;
-          if (_activeTab == 'live') return isMyVendor && item.status != 'delivered';
-          return isMyVendor && item.status == 'delivered';
+          return _vendorType.isEmpty || item.vendorId == _vendorType;
         });
       }).toList();
-
-      // Sort
-      if (_activeTab == 'live') {
-        _orders.sort((a, b) => a.createdAt.compareTo(b.createdAt)); // Oldest first
-      } else {
-        _orders.sort((a, b) => b.createdAt.compareTo(a.createdAt)); // Newest first
-      }
 
       _isLoading = false;
       notifyListeners();
     });
   }
 
-  void calculateTotalSales() {
-    _db
-        .collection('orders')
-        .where('status', isEqualTo: 'delivered')
-        .snapshots()
-        .listen((snapshot) {
-      double sales = 0;
-      for (var doc in snapshot.docs) {
-        final data = doc.data();
-        final items = data['items'] as List? ?? [];
-        for (var item in items) {
-          bool isMyVendor = _vendorType.isEmpty || item['vendorId'] == _vendorType;
-          if (isMyVendor && item['status'] == 'delivered') {
-            sales += (item['price'] as num).toDouble() * (item['quantity'] as num).toDouble();
-          }
-        }
-      }
-      _totalSales = sales;
-      notifyListeners();
-    });
+  bool _isDateInRange(DateTime date) {
+    if (_dateFilter == 'All') return true;
+    
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    
+    switch (_dateFilter) {
+      case 'Today':
+        return date.isAfter(today);
+      case 'This Week':
+        final weekStart = today.subtract(Duration(days: now.weekday - 1));
+        return date.isAfter(weekStart);
+      case 'This Month':
+        final monthStart = DateTime(now.year, now.month, 1);
+        return date.isAfter(monthStart);
+      case 'This Year':
+        final yearStart = DateTime(now.year, 1, 1);
+        return date.isAfter(yearStart);
+      default:
+        return true;
+    }
   }
 
+  // Placeholder for old method to avoid breaking existing calls
+  void calculateTotalSales() {}
+
   Future<void> updateItemStatus(String orderId, int itemIndex, String newStatus) async {
-    final order = _orders.firstWhere((o) => o.id == orderId);
+    final orderIdx = _allOrders.indexWhere((o) => o.id == orderId);
+    if (orderIdx == -1) return;
     
+    final order = _allOrders[orderIdx];
     List<Map<String, dynamic>> updatedItems = order.items.map((item) => item.toMap()).toList();
     updatedItems[itemIndex]['status'] = newStatus;
 
-    // Check if ALL items in the entire order are ready or delivered
     bool allReady = updatedItems.every((i) => i['status'] == 'ready' || i['status'] == 'delivered');
 
     await _db.collection('orders').doc(orderId).update({

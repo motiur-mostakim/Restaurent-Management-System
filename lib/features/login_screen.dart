@@ -59,7 +59,6 @@ class _LoginScreenState extends State<LoginScreen> {
           password: _passwordController.text.trim(),
         );
       } else {
-        // Only Admin can sign up from this screen
         cred = await _auth.createUserWithEmailAndPassword(
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
@@ -134,28 +133,17 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: TextStyle(color: Color(0xFF64748B), fontSize: 14),
                 ),
                 const SizedBox(height: 40),
-
-                // Role selector only shown for Sign In
                 if (_isLogin) ...[
-                  Align(
+                  const Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
                       "Signing in as:",
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: Color(0xFF64748B),
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _roleButton('admin', Icons.admin_panel_settings, "Admin"),
-                      _roleButton('waiter', Icons.person, "Waiter"),
-                      _roleButton('vendor_staff', Icons.countertops, "Kitchen"),
-                    ],
                   ),
                   const SizedBox(height: 24),
                 ],

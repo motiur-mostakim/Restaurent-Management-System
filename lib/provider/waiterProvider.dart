@@ -23,6 +23,40 @@ class WaiterProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  String _dateFilter = 'Today';
+  String get dateFilter => _dateFilter;
+
+  void setDateFilter(String filter) {
+    _dateFilter = filter;
+    notifyListeners();
+  }
+
+  List<OrderModel> get filteredOrdersByDate {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    
+    return orders.where((order) {
+      final orderDate = order.createdAt;
+      final dateOnly = DateTime(orderDate.year, orderDate.month, orderDate.day);
+
+      switch (_dateFilter) {
+        case 'Today':
+          return dateOnly.isAtSameMomentAs(today);
+        case 'This Week':
+          final startOfWeek = today.subtract(Duration(days: today.weekday - 1));
+          return dateOnly.isAtSameMomentAs(startOfWeek) || dateOnly.isAfter(startOfWeek);
+        case 'This Month':
+          return orderDate.year == now.year && orderDate.month == now.month;
+        case 'This Year':
+          return orderDate.year == now.year;
+        case 'All':
+          return true;
+        default:
+          return true;
+      }
+    }).toList();
+  }
+
   String tableNumber = '';
   String specialNotes = '';
   bool isSubmitting = false;

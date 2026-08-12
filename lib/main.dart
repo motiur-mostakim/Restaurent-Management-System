@@ -46,7 +46,7 @@ class MyApp extends StatelessWidget {
         title: 'Restaurant App',
         theme: ThemeData(
           primarySwatch: Colors.orange,
-          scaffoldBackgroundColor: Colors.grey[100],
+          scaffoldBackgroundColor: Colors.orange[50],
         ),
         home: AppRoot(),
       ),
