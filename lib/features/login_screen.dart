@@ -20,8 +20,6 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
   bool _isLogin = true;
   String? _error;
-  String _selectedRole = 'waiter';
-
   final _auth = FirebaseAuth.instance;
   final _db = FirebaseFirestore.instance;
 
@@ -281,43 +279,6 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _roleButton(String role, IconData icon, String label) {
-    bool isSelected = _selectedRole == role;
-    return GestureDetector(
-      onTap: () => setState(() => _selectedRole = role),
-      child: Column(
-        children: [
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: isSelected ? const Color(0xFFFF4F18) : const Color(0xFFF1F5F9),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: isSelected ? const Color(0xFFFF4F18) : const Color(0xFFE2E8F0),
-                width: 2,
-              ),
-            ),
-            child: Icon(
-              icon,
-              color: isSelected ? Colors.white : const Color(0xFF64748B),
-              size: 28,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            style: TextStyle(
-              color: isSelected ? const Color(0xFFFF4F18) : const Color(0xFF64748B),
-              fontSize: 12,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-            ),
-          ),
-        ],
       ),
     );
   }
