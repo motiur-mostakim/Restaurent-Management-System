@@ -61,13 +61,11 @@ class WaiterProvider with ChangeNotifier {
   String specialNotes = '';
   bool isSubmitting = false;
 
-  /// 🔥 Filtered Menu Items based on active vendor (by vendorId)
   List<MenuItem> get filteredMenuItems {
     if (_activeVendor == 'all') return menuItems;
     return menuItems.where((item) => item.vendorId == _activeVendor).toList();
   }
 
-  /// 🔥 Load Menu (Realtime)
   void listenMenu() {
     db
         .collection('menu_items')
@@ -82,7 +80,6 @@ class WaiterProvider with ChangeNotifier {
     });
   }
 
-  /// 🔥 Load Vendors (Realtime)
   void listenVendors() {
     db.collection('vendor').snapshots().listen((snapshot) {
       vendors = snapshot.docs
@@ -92,7 +89,6 @@ class WaiterProvider with ChangeNotifier {
     });
   }
 
-  /// 📋 Load Orders (Realtime)
   void listenOrders() {
     final uid = auth.currentUser?.uid;
     if (uid == null) return;
@@ -108,7 +104,6 @@ class WaiterProvider with ChangeNotifier {
     });
   }
 
-  /// ➕ Add to Cart
   void addToCart(MenuItem item) {
     final index = cart.indexWhere((i) => i.id == item.id);
 
@@ -128,7 +123,6 @@ class WaiterProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  /// 🔁 Update Quantity
   void updateQuantity(String id, int delta) {
     final index = cart.indexWhere((i) => i.id == id);
 
@@ -143,17 +137,14 @@ class WaiterProvider with ChangeNotifier {
     }
   }
 
-  /// ❌ Remove
   void removeFromCart(String id) {
     cart.removeWhere((i) => i.id == id);
     notifyListeners();
   }
 
-  /// 💰 Total
   double get total =>
       cart.fold(0, (sum, item) => sum + item.price * item.quantity);
 
-  /// 📤 Place Order using OrderModel
   Future<void> placeOrder(BuildContext context, {String? paymentMethod}) async {
     if (tableNumber.isEmpty) {
       ScaffoldMessenger.of(context)
@@ -208,7 +199,6 @@ class WaiterProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  /// ✅ Mark as Delivered
   Future<void> completeHandover(String orderId, String? paymentMethod) async {
     try {
       final order = orders.firstWhere((o) => o.id == orderId);
