@@ -17,7 +17,6 @@ class KitchenOrderScreen extends StatefulWidget {
 class _KitchenOrderScreenState extends State<KitchenOrderScreen> {
   final Color primaryColor = const Color(0xFFFF4F18);
   final Color secondaryColor = const Color(0xFF0F172A);
-  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
@@ -33,12 +32,6 @@ class _KitchenOrderScreenState extends State<KitchenOrderScreen> {
       kdsProvider.setVendor('');
       kdsProvider.listenOrders();
     });
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
   }
 
   @override
@@ -75,7 +68,7 @@ class _KitchenOrderScreenState extends State<KitchenOrderScreen> {
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
         scrolledUnderElevation: 0,
-        toolbarHeight: 90,
+        toolbarHeight: 85,
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: false,
@@ -90,37 +83,36 @@ class _KitchenOrderScreenState extends State<KitchenOrderScreen> {
                     currentVendor.name,
                     style: const TextStyle(
                       fontWeight: FontWeight.w900,
-                      fontSize: 26,
+                      fontSize: 24,
                       color: Color(0xFF0F172A),
                       letterSpacing: -0.5,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 10),
                   Container(
-                    width: 10,
-                    height: 10,
+                    width: 8,
+                    height: 8,
                     decoration: const BoxDecoration(
                       color: Colors.green,
                       shape: BoxShape.circle,
                       boxShadow: [
-                        BoxShadow(color: Colors.green, blurRadius: 4),
+                        BoxShadow(
+                          color: Colors.green,
+                          blurRadius: 4,
+                          spreadRadius: 1,
+                        ),
                       ],
                     ),
                   ),
                 ],
               ),
+              _buildLiveCounter(provider.activeCount),
             ],
           ),
         ),
         actions: [
-          _buildActionStat(
-            context,
-            label: "ACTIVE ORDERS",
-            value: "${provider.activeCount}",
-            color: primaryColor,
-            icon: Icons.local_fire_department_rounded,
-          ),
-          const SizedBox(width: 16),
+          _buildStatusDropdown(provider),
+          const SizedBox(width: 20),
         ],
       ),
       body: Column(
@@ -132,11 +124,10 @@ class _KitchenOrderScreenState extends State<KitchenOrderScreen> {
                 bottom: BorderSide(color: Colors.grey.withOpacity(0.1)),
               ),
             ),
-            padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
+            padding: const EdgeInsets.fromLTRB(24, 12, 24, 20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildStatusDropdown(provider),
                 VendorSwitcherWidget(
                   vendors: waiterProvider.vendors,
                   provider: provider,
@@ -144,7 +135,6 @@ class _KitchenOrderScreenState extends State<KitchenOrderScreen> {
               ],
             ),
           ),
-
           Expanded(
             child: provider.isLoading
                 ? const Center(child: CircularProgressIndicator())
@@ -189,48 +179,22 @@ class _KitchenOrderScreenState extends State<KitchenOrderScreen> {
     );
   }
 
-  Widget _buildActionStat(
-    BuildContext context, {
-    required String label,
-    required String value,
-    required Color color,
-    required IconData icon,
-  }) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.1)),
-      ),
+  Widget _buildLiveCounter(int count) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 4.0),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 20, color: color),
-          const SizedBox(width: 12),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 9,
-                  fontWeight: FontWeight.w900,
-                  color: color.withOpacity(0.6),
-                  letterSpacing: 1,
-                ),
-              ),
-              Text(
-                value,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w900,
-                  color: color,
-                ),
-              ),
-            ],
+          Icon(Icons.local_fire_department_rounded,
+              color: primaryColor, size: 18),
+          const SizedBox(width: 8),
+          Text(
+            "ACTIVE ORDERS: $count",
+            style: TextStyle(
+              color: primaryColor,
+              fontWeight: FontWeight.w900,
+              fontSize: 13,
+            ),
           ),
         ],
       ),
@@ -239,11 +203,11 @@ class _KitchenOrderScreenState extends State<KitchenOrderScreen> {
 
   Widget _buildStatusDropdown(KitchenProvider provider) {
     return Container(
-      height: 52,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      height: 42,
+      padding: const EdgeInsets.symmetric(horizontal: 14),
       decoration: BoxDecoration(
         color: const Color(0xFFF1F5F9),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
       child: DropdownButtonHideUnderline(
@@ -255,16 +219,16 @@ class _KitchenOrderScreenState extends State<KitchenOrderScreen> {
             color: Color(0xFF64748B),
           ),
           style: const TextStyle(
-            fontSize: 14,
+            fontSize: 13,
             fontWeight: FontWeight.w800,
             color: Color(0xFF1E293B),
           ),
           onChanged: (val) => provider.activeTab = val!,
           items: const [
-            DropdownMenuItem(value: 'live', child: Text("Status: Live")),
+            DropdownMenuItem(value: 'live', child: Text("Live")),
             DropdownMenuItem(
               value: 'history',
-              child: Text("Status: Completed"),
+              child: Text("Completed"),
             ),
           ],
         ),
