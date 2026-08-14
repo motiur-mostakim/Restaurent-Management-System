@@ -37,61 +37,46 @@ class _WaiterMainScreenState extends State<WaiterMainScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: IndexedStack(index: _selectedIndex, children: _pages),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 20,
-              offset: const Offset(0, -5),
-            ),
-          ],
-        ),
-        child: BottomNavigationBar(
-          currentIndex: _selectedIndex,
-          onTap: (index) {
-            setState(() {
-              _selectedIndex = index;
-            });
-          },
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: Colors.white,
-          selectedItemColor: const Color(0xFFFF4F18),
-          unselectedItemColor: const Color(0xFF94A3B8),
-          showUnselectedLabels: true,
-          selectedLabelStyle: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 11,
+      bottomNavigationBar: _buildBottomNav(),
+    );
+  }
+
+  Widget _buildBottomNav() {
+    return NavigationBar(
+      backgroundColor: Colors.white,
+      selectedIndex: _selectedIndex,
+      indicatorColor: const Color(0xFFFF4F18),
+      onDestinationSelected: (index) => setState(() => _selectedIndex = index),
+      destinations: [
+        NavigationDestination(
+          icon: Icon(
+            Icons.dashboard,
+            color: Color(_selectedIndex == 0 ? 0xFFFFFFFF : 0xFF1C1C1C),
           ),
-          unselectedLabelStyle: const TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 11,
-          ),
-          elevation: 0,
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.dashboard_outlined),
-              activeIcon: Icon(Icons.dashboard_rounded),
-              label: 'Dashboard',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.add_shopping_cart_outlined),
-              activeIcon: Icon(Icons.add_shopping_cart_rounded),
-              label: 'New Order',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.track_changes_outlined),
-              activeIcon: Icon(Icons.track_changes_rounded),
-              label: 'Tracking',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline_rounded),
-              activeIcon: Icon(Icons.person_rounded),
-              label: 'Profile',
-            ),
-          ],
+          label: 'Dashboard',
         ),
-      ),
+        NavigationDestination(
+          icon: Icon(
+            Icons.add_shopping_cart,
+            color: Color(_selectedIndex == 1 ? 0xFFFFFFFF : 0xFF1C1C1C),
+          ),
+          label: 'New Order',
+        ),
+        NavigationDestination(
+          icon: Icon(
+            Icons.track_changes,
+            color: Color(_selectedIndex == 2 ? 0xFFFFFFFF : 0xFF1C1C1C),
+          ),
+          label: 'Tracking',
+        ),
+        NavigationDestination(
+          icon: Icon(
+            Icons.person,
+            color: Color(_selectedIndex == 3 ? 0xFFFFFFFF : 0xFF1C1C1C),
+          ),
+          label: 'Profile',
+        ),
+      ],
     );
   }
 }

@@ -28,79 +28,46 @@ class _KitchenMainScreenState extends State<KitchenMainScreen> {
         index: _selectedIndex,
         children: _screens,
       ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 10,
-              offset: const Offset(0, -2),
-            ),
-          ],
+      bottomNavigationBar: _buildBottomNav(),
+    );
+  }
+
+  Widget _buildBottomNav() {
+    return NavigationBar(
+      backgroundColor: Colors.white,
+      selectedIndex: _selectedIndex,
+      indicatorColor: const Color(0xFFFF4F18),
+      onDestinationSelected: (index) => setState(() => _selectedIndex = index),
+      destinations: [
+        NavigationDestination(
+          icon: Icon(
+            _selectedIndex == 0 ? Icons.dashboard : Icons.dashboard_outlined,
+            color: Color(_selectedIndex == 0 ? 0xFFFFFFFF : 0xFF1C1C1C),
+          ),
+          label: 'Dashboard',
         ),
-        child: BottomNavigationBar(
-          currentIndex: _selectedIndex,
-          onTap: (index) {
-            setState(() {
-              _selectedIndex = index;
-            });
-          },
-          backgroundColor: Colors.white,
-          elevation: 0,
-          type: BottomNavigationBarType.fixed,
-          selectedItemColor: const Color(0xFFFF4F18),
-          unselectedItemColor: const Color(0xFF94A3B8),
-          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-          items: const [
-            BottomNavigationBarItem(
-              icon: Padding(
-                padding: EdgeInsets.only(bottom: 4),
-                child: Icon(Icons.dashboard_outlined),
-              ),
-              activeIcon: Padding(
-                padding: EdgeInsets.only(bottom: 4),
-                child: Icon(Icons.dashboard),
-              ),
-              label: 'Dashboard',
-            ),
-            BottomNavigationBarItem(
-              icon: Padding(
-                padding: EdgeInsets.only(bottom: 4),
-                child: Icon(Icons.restaurant_outlined),
-              ),
-              activeIcon: Padding(
-                padding: EdgeInsets.only(bottom: 4),
-                child: Icon(Icons.restaurant),
-              ),
-              label: 'Orders',
-            ),
-            BottomNavigationBarItem(
-              icon: Padding(
-                padding: EdgeInsets.only(bottom: 4),
-                child: Icon(Icons.inventory_2_outlined),
-              ),
-              activeIcon: Padding(
-                padding: EdgeInsets.only(bottom: 4),
-                child: Icon(Icons.inventory_2),
-              ),
-              label: 'Inventory',
-            ),
-            BottomNavigationBarItem(
-              icon: Padding(
-                padding: EdgeInsets.only(bottom: 4),
-                child: Icon(Icons.person_outline),
-              ),
-              activeIcon: Padding(
-                padding: EdgeInsets.only(bottom: 4),
-                child: Icon(Icons.person),
-              ),
-              label: 'Profile',
-            ),
-          ],
+        NavigationDestination(
+          icon: Icon(
+            _selectedIndex == 1 ? Icons.restaurant : Icons.restaurant_outlined,
+            color: Color(_selectedIndex == 1 ? 0xFFFFFFFF : 0xFF1C1C1C),
+          ),
+          label: 'Orders',
         ),
-      ),
+        NavigationDestination(
+          icon: Icon(
+            _selectedIndex == 2 ? Icons.inventory_2 : Icons.inventory_2_outlined,
+            color: Color(_selectedIndex == 2 ? 0xFFFFFFFF : 0xFF1C1C1C),
+          ),
+          label: 'Inventory',
+        ),
+        NavigationDestination(
+          icon: Icon(
+            _selectedIndex == 3 ? Icons.person : Icons.person_outline,
+            color: Color(_selectedIndex == 3 ? 0xFFFFFFFF : 0xFF1C1C1C),
+          ),
+          label: 'Profile',
+        ),
+      ],
     );
   }
 }

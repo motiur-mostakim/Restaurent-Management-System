@@ -52,7 +52,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       appBar: AppBar(
         scrolledUnderElevation: 0,
         title: const Text(
-          "Admin Insights",
+          "Admin Dashboard",
           style: TextStyle(
             fontWeight: FontWeight.w900,
             color: Color(0xFF0F172A),

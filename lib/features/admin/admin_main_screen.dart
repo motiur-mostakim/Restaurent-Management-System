@@ -24,10 +24,7 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: _pages,
-      ),
+      body: IndexedStack(index: _selectedIndex, children: _pages),
       bottomNavigationBar: _buildBottomNav(),
     );
   }
@@ -36,12 +33,37 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
     return NavigationBar(
       backgroundColor: Colors.white,
       selectedIndex: _selectedIndex,
+      indicatorColor: const Color(0xFFFF4F18),
       onDestinationSelected: (index) => setState(() => _selectedIndex = index),
-      destinations: const [
-        NavigationDestination(icon: Icon(Icons.analytics_outlined), label: 'Analytics'),
-        NavigationDestination(icon: Icon(Icons.restaurant_menu), label: 'Menu'),
-        NavigationDestination(icon: Icon(Icons.book_online), label: 'Bookings'),
-        NavigationDestination(icon: Icon(Icons.person_pin), label: 'Profile'),
+      destinations: [
+        NavigationDestination(
+          icon: Icon(
+            Icons.dashboard,
+            color: Color(_selectedIndex == 0 ? 0xFFFFFFFF : 0xFF1C1C1C),
+          ),
+          label: 'Dashboard',
+        ),
+        NavigationDestination(
+          icon: Icon(
+            Icons.restaurant_menu,
+            color: Color(_selectedIndex == 1 ? 0xFFFFFFFF : 0xFF1C1C1C),
+          ),
+          label: 'Menu',
+        ),
+        NavigationDestination(
+          icon: Icon(
+            Icons.book_online,
+            color: Color(_selectedIndex == 2 ? 0xFFFFFFFF : 0xFF1C1C1C),
+          ),
+          label: 'Bookings',
+        ),
+        NavigationDestination(
+          icon: Icon(
+            Icons.person_pin,
+            color: Color(_selectedIndex == 3 ? 0xFFFFFFFF : 0xFF1C1C1C),
+          ),
+          label: 'Profile',
+        ),
       ],
     );
   }
