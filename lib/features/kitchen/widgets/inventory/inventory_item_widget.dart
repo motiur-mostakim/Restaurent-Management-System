@@ -118,14 +118,19 @@ class InventoryItemWidget extends StatelessWidget {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF1F5F9),
+                          color: item.vendorId == 'fast_food'
+                              ? const Color(0xFFFFF7ED)
+                              : const Color(0xFFEFF6FF),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
-                          item.category.toUpperCase(),
-                          style: const TextStyle(
+                          (item.vendorId == 'fast_food' ? 'Tasus' : 'NESCAFÉ')
+                              .toUpperCase(),
+                          style: TextStyle(
                             fontSize: 9,
-                            color: Color(0xFF64748B),
+                            color: item.vendorId == 'fast_food'
+                                ? const Color(0xFFC2410C)
+                                : const Color(0xFF1D4ED8),
                             fontWeight: FontWeight.w900,
                             letterSpacing: 0.5,
                           ),
