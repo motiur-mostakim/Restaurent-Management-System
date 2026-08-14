@@ -3,24 +3,24 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:restaurant_management/features/waiter/waiter_orders_screen.dart';
 
-import '../provider/waiterProvider.dart';
-import '../model/menu_item.dart';
-import '../model/user_model.dart';
-import '../model/order_model.dart';
-import '../utils/payment_modal.dart';
-import 'login_screen.dart';
-import 'waiter_orders_screen.dart';
-import 'profile_details_screen.dart';
+import '../../provider/waiterProvider.dart';
+import '../../model/menu_item.dart';
+import '../../model/user_model.dart';
+import '../../model/order_model.dart';
+import '../../utils/payment_modal.dart';
+import '../login_screen.dart';
+import '../profile_details_screen.dart';
 
-class WaiterScreen extends StatefulWidget {
-  const WaiterScreen({super.key});
+class WaiterDashboardScreen extends StatefulWidget {
+  const WaiterDashboardScreen({super.key});
 
   @override
-  State<WaiterScreen> createState() => _WaiterScreenState();
+  State<WaiterDashboardScreen> createState() => _WaiterDashboardScreenState();
 }
 
-class _WaiterScreenState extends State<WaiterScreen> {
+class _WaiterDashboardScreenState extends State<WaiterDashboardScreen> {
   int _selectedIndex = 0;
 
   void _onNavigate(int index) {

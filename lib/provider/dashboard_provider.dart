@@ -8,8 +8,6 @@ import '../model/vendor_model.dart';
 class DashboardProvider with ChangeNotifier {
   double totalSales = 0;
   int totalOrders = 0;
-  
-  // Dynamic vendor data
   List<VendorModel> vendors = [];
   Map<String, double> vendorRevenues = {};
   Map<String, int> vendorOrdersCount = {};
@@ -55,7 +53,6 @@ class DashboardProvider with ChangeNotifier {
   }
 
   Future<void> checkAndSeed() async {
-    // Seed Vendors if empty (using 'vendor' collection to match database)
     final vendorSnap = await db.collection('vendor').limit(1).get();
     if (vendorSnap.docs.isEmpty) {
       debugPrint('Seeding initial vendors...');

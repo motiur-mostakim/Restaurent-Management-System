@@ -3,9 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'kitchen_dashboard_screen.dart';
 import 'kds_screen.dart';
+import '../profile_details_screen.dart';
+import '../../model/user_model.dart';
 import 'kitchen_menu_screen.dart';
-import 'profile_details_screen.dart';
-import '../model/user_model.dart';
 
 class KitchenMainScreen extends StatefulWidget {
   const KitchenMainScreen({super.key});

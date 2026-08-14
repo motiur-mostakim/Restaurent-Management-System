@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import '../provider/waiterProvider.dart';
-import '../model/order_model.dart';
+import '../../model/order_model.dart';
+import '../../provider/waiterProvider.dart';
 
 class WaiterOrdersScreen extends StatefulWidget {
   final bool isTabView;

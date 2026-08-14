@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import '../provider/kds_provider.dart';
-import '../provider/waiterProvider.dart';
-import '../provider/menu_provider.dart';
-import '../model/vendor_model.dart';
-import '../model/order_model.dart';
+import '../../provider/kds_provider.dart';
+import '../../provider/waiterProvider.dart';
+import '../../provider/menu_provider.dart';
+import '../../model/vendor_model.dart';
+import '../../model/order_model.dart';
 import 'kitchen_menu_screen.dart';
 
 class KitchenDashboardScreen extends StatefulWidget {
