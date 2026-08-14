@@ -35,20 +35,11 @@ class VendorSwitcherWidget extends StatelessWidget {
               duration: const Duration(milliseconds: 200),
               padding: const EdgeInsets.symmetric(horizontal: 20),
               decoration: BoxDecoration(
-                color: isSelected ? const Color(0xFF0F172A) : Colors.white,
+                color: isSelected ? const Color(0xFFFF4F18) : Colors.white,
                 borderRadius: BorderRadius.circular(12),
-                boxShadow: isSelected
-                    ? [
-                        BoxShadow(
-                          color: const Color(0xFF0F172A).withOpacity(0.2),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ]
-                    : [],
                 border: Border.all(
                   color: isSelected
-                      ? const Color(0xFF0F172A)
+                      ? const Color(0xFFFF4F18)
                       : Colors.grey.withOpacity(0.15),
                 ),
               ),
