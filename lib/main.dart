@@ -48,7 +48,7 @@ class MyApp extends StatelessWidget {
           primarySwatch: Colors.orange,
           scaffoldBackgroundColor: Colors.orange[50],
         ),
-        home: AppRoot(),
+        home: const AppRoot(),
       ),
     );
   }

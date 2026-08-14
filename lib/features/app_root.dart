@@ -35,7 +35,6 @@ class AppRoot extends StatelessWidget {
               return const _GlobalLoading(message: "");
             }
 
-            // যদি ইউজারের তথ্য ডাটাবেসে না থাকে (যেমন ডিলিট করে দেওয়া হয়েছে)
             if (!roleSnapshot.hasData || !roleSnapshot.data!.exists) {
               FirebaseAuth.instance.signOut();
               return const LoginScreen();

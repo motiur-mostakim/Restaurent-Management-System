@@ -19,6 +19,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool _isLoading = false;
   bool _isLogin = true;
+  bool _obscurePassword = true;
   String? _error;
   final _auth = FirebaseAuth.instance;
   final _db = FirebaseFirestore.instance;
@@ -117,35 +118,25 @@ class _LoginScreenState extends State<LoginScreen> {
                   color: Color(0xFFFF4F18),
                 ),
                 const SizedBox(height: 20),
-                const Text(
-                  "Restaurant OS",
-                  style: TextStyle(
+                Text(
+                  _isLogin ? "Welcome Back" : "Get Started",
+                  style: const TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF0F172A),
                     letterSpacing: -1,
                   ),
                 ),
-                const Text(
-                  "Unified Management Platform",
-                  style: TextStyle(color: Color(0xFF64748B), fontSize: 14),
-                ),
-                const SizedBox(height: 40),
-                if (_isLogin) ...[
-                  const Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      "Signing in as:",
-                      style: TextStyle(
-                        color: Color(0xFF64748B),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                Text(
+                  _isLogin
+                      ? "Sign in to continue your work"
+                      : "Create an admin account to begin",
+                  style: const TextStyle(
+                    color: Color(0xFF64748B),
+                    fontSize: 14,
                   ),
-                  const SizedBox(height: 24),
-                ],
-
+                ),
+                const SizedBox(height: 80),
                 if (!_isLogin) ...[
                   TextField(
                     controller: _nameController,
@@ -178,9 +169,27 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 16),
                 TextField(
                   controller: _passwordController,
-                  obscureText: true,
+                  obscureText: _obscurePassword,
                   style: const TextStyle(color: Color(0xFF0F172A)),
-                  decoration: _inputDecoration("Password", Icons.lock_outline),
+                  decoration: _inputDecoration(
+                    "Password",
+                    Icons.lock_outline,
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePassword
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined,
+                        color: const Color(0xFF64748B),
+                        size: 20,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _obscurePassword =
+                              !_obscurePassword;
+                        });
+                      },
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 24),
 
@@ -283,12 +292,17 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  InputDecoration _inputDecoration(String label, IconData icon) {
+  InputDecoration _inputDecoration(
+    String label,
+    IconData icon, {
+    Widget? suffixIcon,
+  }) {
     return InputDecoration(
       labelText: label,
       labelStyle: const TextStyle(color: Color(0xFF64748B), fontSize: 14),
       prefixIcon: Icon(icon, color: const Color(0xFF64748B), size: 20),
       filled: true,
+      suffixIcon: suffixIcon,
       fillColor: const Color(0xFFF8FAFC),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
