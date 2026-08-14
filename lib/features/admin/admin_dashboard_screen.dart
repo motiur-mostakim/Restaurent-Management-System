@@ -61,7 +61,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         ),
         backgroundColor: Colors.white,
         elevation: 0,
-        actions: [FilterWidget(provider: provider)],
+        actions: [
+          FilterWidget(
+            provider: provider,
+            isForKitchen: false,
+            isForWaiter: false,
+          ),
+        ],
       ),
       body: provider.isLoading
           ? const Center(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:restaurant_management/features/admin/widgets/dashboard/filter_widget.dart';
 
 import '../../provider/waiterProvider.dart';
 import 'widgets/report_card_for_waiter_dashboard.dart';
@@ -36,7 +37,9 @@ class _WaiterDashboardScreenState extends State<WaiterDashboardScreen> {
     final filteredOrders = provider.filteredOrdersByDate;
 
     int totalOrders = filteredOrders.length;
-    int pendingOrders = filteredOrders.where((o) => o.status == 'pending').length;
+    int pendingOrders = filteredOrders
+        .where((o) => o.status == 'pending')
+        .length;
     int deliveredOrders = filteredOrders
         .where((o) => o.status == 'delivered')
         .length;
@@ -61,32 +64,10 @@ class _WaiterDashboardScreenState extends State<WaiterDashboardScreen> {
         elevation: 0,
         centerTitle: false,
         actions: [
-          Container(
-            margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF1F5F9),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                value: provider.dateFilter,
-                icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 20, color: Color(0xFF64748B)),
-                style: const TextStyle(color: Color(0xFF1E293B), fontWeight: FontWeight.w700, fontSize: 13),
-                onChanged: (String? newValue) {
-                  if (newValue != null) {
-                    provider.setDateFilter(newValue);
-                  }
-                },
-                items: <String>['Today', 'This Week', 'This Month', 'This Year', 'All']
-                    .map<DropdownMenuItem<String>>((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-              ),
-            ),
+          FilterWidget(
+            waiterProvider: provider,
+            isForWaiter: true,
+            isForKitchen: false,
           ),
         ],
       ),
@@ -164,151 +145,151 @@ class _WaiterDashboardScreenState extends State<WaiterDashboardScreen> {
               height: 200,
               child: provider.menuItems.isEmpty
                   ? const Center(
-                child: Text(
-                  "Loading items...",
-                  style: TextStyle(color: Color(0xFF94A3B8)),
-                ),
-              )
+                      child: Text(
+                        "Loading items...",
+                        style: TextStyle(color: Color(0xFF94A3B8)),
+                      ),
+                    )
                   : ListView.separated(
-                scrollDirection: Axis.horizontal,
-                physics: const BouncingScrollPhysics(),
-                itemCount: provider.menuItems.take(8).length,
-                separatorBuilder: (context, index) =>
-                const SizedBox(width: 16),
-                itemBuilder: (context, index) {
-                  final item = provider.menuItems[index];
-                  return Container(
-                    width: 160,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(24),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.04),
-                          blurRadius: 15,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          flex: 3,
-                          child: Stack(
-                            children: [
-                              Container(
-                                decoration: BoxDecoration(
-                                  borderRadius:
-                                  const BorderRadius.vertical(
-                                    top: Radius.circular(24),
-                                  ),
-                                  image:
-                                  item.image != null &&
-                                      item.image!.isNotEmpty
-                                      ? DecorationImage(
-                                    image: NetworkImage(
-                                      item.image!,
-                                    ),
-                                    fit: BoxFit.cover,
-                                  )
-                                      : null,
-                                  color: const Color(0xFFF1F5F9),
-                                ),
-                                child:
-                                item.image == null ||
-                                    item.image!.isEmpty
-                                    ? const Center(
-                                  child: Icon(
-                                    Icons.fastfood_outlined,
-                                    color: Color(0xFFCBD5E1),
-                                    size: 40,
-                                  ),
-                                )
-                                    : null,
+                      scrollDirection: Axis.horizontal,
+                      physics: const BouncingScrollPhysics(),
+                      itemCount: provider.menuItems.take(8).length,
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(width: 16),
+                      itemBuilder: (context, index) {
+                        final item = provider.menuItems[index];
+                        return Container(
+                          width: 160,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(24),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.04),
+                                blurRadius: 15,
+                                offset: const Offset(0, 8),
                               ),
-                              Positioned(
-                                top: 10,
-                                right: 10,
-                                child: GestureDetector(
-                                  onTap: () {
-                                    provider.addToCart(item);
-                                    ScaffoldMessenger.of(
-                                      context,
-                                    ).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          "${item.name} added",
-                                        ),
-                                        duration: const Duration(
-                                          seconds: 1,
-                                        ),
-                                        behavior:
-                                        SnackBarBehavior.floating,
-                                        width: 160,
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                flex: 3,
+                                child: Stack(
+                                  children: [
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        borderRadius:
+                                            const BorderRadius.vertical(
+                                              top: Radius.circular(24),
+                                            ),
+                                        image:
+                                            item.image != null &&
+                                                item.image!.isNotEmpty
+                                            ? DecorationImage(
+                                                image: NetworkImage(
+                                                  item.image!,
+                                                ),
+                                                fit: BoxFit.cover,
+                                              )
+                                            : null,
+                                        color: const Color(0xFFF1F5F9),
                                       ),
-                                    );
-                                  },
-                                  child: Container(
-                                    padding: const EdgeInsets.all(6),
-                                    decoration: const BoxDecoration(
-                                      color: Colors.white,
-                                      shape: BoxShape.circle,
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black12,
-                                          blurRadius: 4,
+                                      child:
+                                          item.image == null ||
+                                              item.image!.isEmpty
+                                          ? const Center(
+                                              child: Icon(
+                                                Icons.fastfood_outlined,
+                                                color: Color(0xFFCBD5E1),
+                                                size: 40,
+                                              ),
+                                            )
+                                          : null,
+                                    ),
+                                    Positioned(
+                                      top: 10,
+                                      right: 10,
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          provider.addToCart(item);
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                "${item.name} added",
+                                              ),
+                                              duration: const Duration(
+                                                seconds: 1,
+                                              ),
+                                              behavior:
+                                                  SnackBarBehavior.floating,
+                                              width: 160,
+                                            ),
+                                          );
+                                        },
+                                        child: Container(
+                                          padding: const EdgeInsets.all(6),
+                                          decoration: const BoxDecoration(
+                                            color: Colors.white,
+                                            shape: BoxShape.circle,
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black12,
+                                                blurRadius: 4,
+                                              ),
+                                            ],
+                                          ),
+                                          child: const Icon(
+                                            Icons.add_rounded,
+                                            color: Color(0xFFFF4F18),
+                                            size: 18,
+                                          ),
                                         ),
-                                      ],
+                                      ),
                                     ),
-                                    child: const Icon(
-                                      Icons.add_rounded,
-                                      color: Color(0xFFFF4F18),
-                                      size: 18,
-                                    ),
+                                  ],
+                                ),
+                              ),
+                              Expanded(
+                                flex: 2,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(12),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        item.name,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w800,
+                                          fontSize: 14,
+                                          color: Color(0xFF1E293B),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        formatCurrency(item.price),
+                                        style: const TextStyle(
+                                          color: Color(0xFFFF4F18),
+                                          fontWeight: FontWeight.w900,
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),
                             ],
                           ),
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Column(
-                              crossAxisAlignment:
-                              CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  item.name,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w800,
-                                    fontSize: 14,
-                                    color: Color(0xFF1E293B),
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  formatCurrency(item.price),
-                                  style: const TextStyle(
-                                    color: Color(0xFFFF4F18),
-                                    fontWeight: FontWeight.w900,
-                                    fontSize: 13,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
             ),
             const SizedBox(height: 32),
             Row(
@@ -337,90 +318,90 @@ class _WaiterDashboardScreenState extends State<WaiterDashboardScreen> {
             const SizedBox(height: 16),
             filteredOrders.isEmpty
                 ? const Center(
-              child: Padding(
-                padding: EdgeInsets.all(40.0),
-                child: Text(
-                  "No orders found",
-                  style: TextStyle(color: Color(0xFF94A3B8)),
-                ),
-              ),
-            )
-                : ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: filteredOrders.take(10).length,
-              separatorBuilder: (context, index) =>
-              const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                final order = filteredOrders[index];
-                return InkWell(
-                  onTap: () => widget.onNavigate(1),
-                  borderRadius: BorderRadius.circular(20),
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                    child: Padding(
+                      padding: EdgeInsets.all(40.0),
+                      child: Text(
+                        "No orders found",
+                        style: TextStyle(color: Color(0xFF94A3B8)),
+                      ),
                     ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
+                  )
+                : ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: filteredOrders.take(10).length,
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      final order = filteredOrders[index];
+                      return InkWell(
+                        onTap: () => widget.onNavigate(1),
+                        borderRadius: BorderRadius.circular(20),
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF8FAFC),
-                            borderRadius: BorderRadius.circular(14),
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: const Color(0xFFE2E8F0)),
                           ),
-                          child: const Icon(
-                            Icons.receipt_rounded,
-                            color: Color(0xFF64748B),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          child: Row(
                             children: [
-                              Text(
-                                "Table: ${order.tableNumber}",
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 16,
-                                  color: Color(0xFF1E293B),
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF8FAFC),
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                child: const Icon(
+                                  Icons.receipt_rounded,
+                                  color: Color(0xFF64748B),
                                 ),
                               ),
-                              Row(
-                                children: [
-                                  Text(
-                                    "${order.items.length} items • ${DateFormat('hh:mm a').format(order.createdAt)}",
-                                    style: const TextStyle(
-                                      color: Color(0xFF94A3B8),
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Table: ${order.tableNumber}",
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: 16,
+                                        color: Color(0xFF1E293B),
+                                      ),
                                     ),
-                                  ),
-                                  const Spacer(),
-                                  Text(
-                                    formatCurrency(order.totalAmount),
-                                    style: const TextStyle(
-                                      color: Color(0xFFFF4F18),
-                                      fontWeight: FontWeight.w900,
-                                      fontSize: 13,
+                                    Row(
+                                      children: [
+                                        Text(
+                                          "${order.items.length} items • ${DateFormat('hh:mm a').format(order.createdAt)}",
+                                          style: const TextStyle(
+                                            color: Color(0xFF94A3B8),
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        const Spacer(),
+                                        Text(
+                                          formatCurrency(order.totalAmount),
+                                          style: const TextStyle(
+                                            color: Color(0xFFFF4F18),
+                                            fontWeight: FontWeight.w900,
+                                            fontSize: 13,
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
+                              const SizedBox(width: 12),
+                              WaiterReportCardStatusBadge(status: order.status),
                             ],
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        WaiterReportCardStatusBadge(status: order.status),
-                      ],
-                    ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
             const SizedBox(height: 20),
           ],
         ),

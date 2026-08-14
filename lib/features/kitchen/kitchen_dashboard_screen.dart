@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import '../admin/widgets/dashboard/filter_widget.dart';
 import 'widgets/dashboard/kitchen_dashboard_inventory_alert_widget.dart';
 import 'widgets/dashboard/section_header_widget.dart';
 import '../../provider/kitchen_provider.dart';
@@ -74,49 +75,11 @@ class _KitchenDashboardScreenState extends State<KitchenDashboardScreen> {
           ),
         ),
         actions: [
-          Container(
-            margin: const EdgeInsets.symmetric(vertical: 12),
-            padding: const EdgeInsets.symmetric(horizontal: 14),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF1F5F9),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-            ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                value: provider.dateFilter,
-                icon: const Icon(
-                  Icons.keyboard_arrow_down_rounded,
-                  size: 20,
-                  color: Colors.black54,
-                ),
-                style: const TextStyle(
-                  color: Color(0xFF1E293B),
-                  fontWeight: FontWeight.w700,
-                  fontSize: 14,
-                ),
-                onChanged: (String? newValue) {
-                  if (newValue != null) {
-                    provider.setDateFilter(newValue);
-                  }
-                },
-                items:
-                    <String>[
-                      'Today',
-                      'This Week',
-                      'This Month',
-                      'This Year',
-                      'All',
-                    ].map<DropdownMenuItem<String>>((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    }).toList(),
-              ),
-            ),
+          FilterWidget(
+            kitchenProvider: provider,
+            isForKitchen: true,
+            isForWaiter: false,
           ),
-          const SizedBox(width: 12),
         ],
       ),
       body: RefreshIndicator(
