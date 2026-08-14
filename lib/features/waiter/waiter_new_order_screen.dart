@@ -109,6 +109,7 @@ class _WaiterNewOrderScreenState extends State<WaiterNewOrderScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
+        scrolledUnderElevation: 0,
         title: const Text(
           "Create New Order",
           style: TextStyle(

@@ -48,6 +48,7 @@ class _WaiterDashboardScreenState extends State<WaiterDashboardScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
+        scrolledUnderElevation: 0,
         title: const Text(
           "Waiter Dashboard",
           style: TextStyle(
