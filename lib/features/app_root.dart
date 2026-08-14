@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:restaurant_management/features/splash/splash_screen.dart';
 import '../model/user_model.dart';
 import 'admin/admin_main_screen.dart';
-import 'login_screen.dart';
+import 'login_screen/login_screen.dart';
 import 'waiter/waiter_main_screen.dart';
 import 'kitchen/kitchen_main_screen.dart';
-import 'splash/splash_screen.dart';
 
 class AppRoot extends StatelessWidget {
   const AppRoot({super.key});
@@ -15,47 +15,53 @@ class AppRoot extends StatelessWidget {
   Widget build(BuildContext context) {
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
+      initialData: FirebaseAuth.instance.currentUser,
       builder: (context, authSnapshot) {
+        if (authSnapshot.connectionState == ConnectionState.waiting &&
+            authSnapshot.data == null) {
+          return const SplashScreen();
+        }
+
         final user = authSnapshot.data;
-        return StreamBuilder<DocumentSnapshot?>(
-          stream: user == null
-              ? Stream.value(null)
-              : FirebaseFirestore.instance
-                    .collection('users')
-                    .doc(user.uid)
-                    .snapshots(),
+        if (user == null) {
+          return const LoginScreen();
+        }
+
+        return StreamBuilder<DocumentSnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.uid)
+              .snapshots(),
           builder: (context, roleSnapshot) {
-            final bool isAuthLoading =
-                authSnapshot.connectionState == ConnectionState.waiting;
-            final bool isRoleLoading =
-                user != null &&
-                roleSnapshot.connectionState == ConnectionState.waiting &&
-                !roleSnapshot.hasData;
-
-            if (isAuthLoading || isRoleLoading) {
-              return const SplashScreen(message: "");
+            if (roleSnapshot.connectionState == ConnectionState.waiting) {
+              return const SplashScreen();
             }
-            if (user == null) {
-              return const LoginScreen();
-            }
-            if (roleSnapshot.hasData &&
-                roleSnapshot.data != null &&
-                roleSnapshot.data!.exists) {
-              final userData = UserModel.fromFirestore(roleSnapshot.data!);
-              final role = userData.role;
 
-              switch (role) {
-                case 'admin':
-                  return const AdminMainScreen();
-                case 'waiter':
-                  return const WaiterMainScreen();
-                case 'vendor_staff':
-                  return const KitchenMainScreen();
-                default:
-                  return const LoginScreen();
+            if (roleSnapshot.hasData && roleSnapshot.data!.exists) {
+              try {
+                final userData = UserModel.fromFirestore(roleSnapshot.data!);
+                final role = userData.role;
+
+                switch (role) {
+                  case 'admin':
+                    return const AdminMainScreen();
+                  case 'waiter':
+                    return const WaiterMainScreen();
+                  case 'vendor_staff':
+                    return const KitchenMainScreen();
+                  default:
+                    return const LoginScreen();
+                }
+              } catch (e) {
+                return const LoginScreen();
               }
             }
-            return const LoginScreen();
+
+            if (roleSnapshot.hasError) {
+              return const LoginScreen();
+            }
+
+            return const SplashScreen();
           },
         );
       },

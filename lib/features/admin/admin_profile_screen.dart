@@ -2,7 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../../model/user_model.dart';
-import '../profile_details_screen.dart';
+import '../../utils/widgets/logout_dialog_widget.dart';
+import '../profile_details_screen/profile_details_screen.dart';
 import 'user_management_screen.dart';
 import 'widgets/profile/profile_menu_item_widget.dart';
 
@@ -208,8 +209,8 @@ class _AdminProfileSectionState extends State<AdminProfileSection> {
                               icon: Icons.phone_android_rounded,
                               label: "Phone Number",
                               value:
-                                  (userData?.phone != null &&
-                                      userData!.phone!.isNotEmpty)
+                              (userData?.phone != null &&
+                                  userData!.phone!.isNotEmpty)
                                   ? userData.phone!
                                   : "Not linked",
                             ),
@@ -241,7 +242,7 @@ class _AdminProfileSectionState extends State<AdminProfileSection> {
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) =>
-                                          const ProfileDetailsScreen(),
+                                      const ProfileDetailsScreen(),
                                     ),
                                   ).then((_) => setState(() {}));
                                 },
@@ -256,7 +257,7 @@ class _AdminProfileSectionState extends State<AdminProfileSection> {
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) =>
-                                          const UserManagementScreen(),
+                                      const UserManagementScreen(),
                                     ),
                                   );
                                 },
@@ -300,7 +301,7 @@ class _AdminProfileSectionState extends State<AdminProfileSection> {
                             textColor: Colors.red.shade600,
                             iconColor: Colors.red.shade600,
                             showTrailing: false,
-                            onTap: () => _showLogoutDialog(context),
+                            onTap: () => showLogoutDialog(context),
                           ),
                         ),
                         const SizedBox(height: 50),
@@ -443,58 +444,6 @@ class _AdminProfileSectionState extends State<AdminProfileSection> {
             ],
           );
         }).toList(),
-      ),
-    );
-  }
-
-  void _showLogoutDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-        title: const Row(
-          children: [
-            Icon(Icons.logout_rounded, color: Colors.red),
-            SizedBox(width: 12),
-            Text("Sign Out", style: TextStyle(fontWeight: FontWeight.w900)),
-          ],
-        ),
-        content: const Text(
-          "Are you sure you want to end your current session? You'll need to login again to access the dashboard.",
-        ),
-        actionsPadding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text(
-              "CANCEL",
-              style: TextStyle(
-                color: Color(0xFF64748B),
-                fontWeight: FontWeight.w900,
-                letterSpacing: 1,
-              ),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              FirebaseAuth.instance.signOut();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red.shade600,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-            ),
-            child: const Text(
-              "LOGOUT",
-              style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1),
-            ),
-          ),
-        ],
       ),
     );
   }

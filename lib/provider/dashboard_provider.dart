@@ -25,8 +25,8 @@ class DashboardProvider with ChangeNotifier {
 
   void setDateFilter(String filter) {
     _dateFilter = filter;
-    _processOrders(); // Re-process data when filter changes
-    _listenBookings(); // Re-listen/filter bookings
+    _processOrders();
+    _listenBookings();
   }
 
   bool _isDateInRange(DateTime date) {
@@ -142,8 +142,6 @@ class DashboardProvider with ChangeNotifier {
 
   void listenData() {
     checkAndSeed();
-
-    // Listen to Vendors from 'vendor' collection
     db.collection('vendor').snapshots().listen((vSnap) {
       vendors = vSnap.docs.map((doc) => VendorModel.fromFirestore(doc.id, doc.data())).toList();
       _processOrders();
@@ -187,8 +185,6 @@ class DashboardProvider with ChangeNotifier {
     int ordersCount = 0;
     Map<String, double> revenues = {};
     Map<String, int> counts = {};
-
-    // Initialize maps for all known vendors
     for (var v in vendors) {
       revenues[v.id] = 0;
       counts[v.id] = 0;

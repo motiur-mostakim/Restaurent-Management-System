@@ -1,19 +1,43 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import '../app_root.dart';
 
-class SplashScreen extends StatelessWidget {
-  final String message;
+class SplashScreen extends StatefulWidget {
+  const SplashScreen({super.key});
 
-  const SplashScreen({super.key, this.message = ""});
+  @override
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
+    _navigateToAppRoot();
+  }
+
+  Future<void> _navigateToAppRoot() async {
+    await Future.delayed(const Duration(seconds: 2));
+    if (!mounted) return;
+    Navigator.pushReplacement(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => const AppRoot(),
+        transitionDuration: Duration.zero,
+        reverseTransitionDuration: Duration.zero,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
+    return const Scaffold(
+      backgroundColor: Color(0xFF0F172A),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const SizedBox(
+            SizedBox(
               width: 48,
               height: 48,
               child: CircularProgressIndicator(
@@ -21,37 +45,25 @@ class SplashScreen extends StatelessWidget {
                 valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF4F18)),
               ),
             ),
-            const SizedBox(height: 24),
-            if (message.isNotEmpty)
-              Text(
-                message,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: -0.5,
-                ),
-              )
-            else ...[
-              const Text(
-                "THE CIRCLE CAFE",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: -1,
-                ),
+            SizedBox(height: 24),
+            Text(
+              "THE CIRCLE CAFE",
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                letterSpacing: -1,
               ),
-              const Text(
-                "CAFE & COMMUNITY SPACE",
-                style: TextStyle(
-                  color: Color(0xFF64748B),
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 3,
-                ),
+            ),
+            Text(
+              "CAFE & COMMUNITY SPACE",
+              style: TextStyle(
+                color: Color(0xFF64748B),
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 3,
               ),
-            ],
+            ),
           ],
         ),
       ),

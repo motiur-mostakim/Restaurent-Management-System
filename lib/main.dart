@@ -5,9 +5,9 @@ import 'provider/dashboard_provider.dart';
 import 'provider/waiterProvider.dart';
 import 'provider/menu_provider.dart';
 import 'provider/booking_provider.dart';
-import 'provider/kds_provider.dart';
+import 'provider/kitchen_provider.dart';
 
-import 'features/app_root.dart';
+import 'features/splash/splash_screen.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -38,7 +38,7 @@ class MyApp extends StatelessWidget {
           create: (_) => BookingProvider(),
         ),
         ChangeNotifierProvider(
-          create: (_) => KdsProvider(),
+          create: (_) => KitchenProvider(),
         ),
       ],
       child: MaterialApp(
@@ -48,7 +48,7 @@ class MyApp extends StatelessWidget {
           primarySwatch: Colors.orange,
           scaffoldBackgroundColor: Colors.orange[50],
         ),
-        home: const AppRoot(),
+        home: const SplashScreen(),
       ),
     );
   }

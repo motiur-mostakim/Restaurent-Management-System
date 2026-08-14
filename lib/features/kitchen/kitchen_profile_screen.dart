@@ -7,8 +7,8 @@ import '/features/admin/widgets/profile/profile_menu_item_widget.dart';
 import '../../model/user_model.dart';
 import '../profile_details_screen/profile_details_screen.dart';
 
-class WaiterProfileScreen extends StatelessWidget {
-  const WaiterProfileScreen({super.key});
+class KitchenProfileScreen extends StatelessWidget {
+  const KitchenProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -128,7 +128,7 @@ class WaiterProfileScreen extends StatelessWidget {
                           Text(
                             userData?.name ??
                                 user?.displayName ??
-                                "Waiter User",
+                                "Kitchen Staff",
                             style: const TextStyle(
                               fontSize: 26,
                               fontWeight: FontWeight.w900,
@@ -159,7 +159,7 @@ class WaiterProfileScreen extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
-                                  (userData?.role ?? "WAITER").toUpperCase(),
+                                  (userData?.role ?? "KITCHEN").toUpperCase(),
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 11,
@@ -217,12 +217,13 @@ class WaiterProfileScreen extends StatelessWidget {
                               ProfileMenuItemWidget(
                                 icon: Icons.person_outline_rounded,
                                 title: "Account Details",
+                                subtitle: "Update name and phone contact",
                                 onTap: () {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) =>
-                                          const ProfileDetailsScreen(),
+                                      const ProfileDetailsScreen(),
                                     ),
                                   );
                                 },
