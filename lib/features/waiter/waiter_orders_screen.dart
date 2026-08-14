@@ -14,7 +14,7 @@ class WaiterOrdersScreen extends StatefulWidget {
 }
 
 class _WaiterOrdersScreenState extends State<WaiterOrdersScreen> {
-  String activeTab = 'active'; // 'active' or 'history'
+  String activeTab = 'active';
   String vendorFilter = 'all';
   final Color primaryColor = const Color(0xFFFF4F18);
 

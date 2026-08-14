@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../model/user_model.dart';
 import 'admin/admin_main_screen.dart';
 import 'login_screen.dart';
-import 'waiter/waiter_dashboard_screen.dart';
+import 'waiter/waiter_main_screen.dart';
 import 'kitchen/kitchen_main_screen.dart';
 import 'splash/splash_screen.dart';
 
@@ -48,7 +48,7 @@ class AppRoot extends StatelessWidget {
                 case 'admin':
                   return const AdminMainScreen();
                 case 'waiter':
-                  return const WaiterDashboardScreen();
+                  return const WaiterMainScreen();
                 case 'vendor_staff':
                   return const KitchenMainScreen();
                 default:

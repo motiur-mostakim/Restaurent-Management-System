@@ -95,22 +95,22 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       crossAxisSpacing: 12,
       childAspectRatio: 1.4,
       children: [
-        SmallStatCard(
+        ReportCardForDashboard(
           label: "Total Revenue",
           value: formatCurrency(provider.totalSales),
           icon: Icons.credit_card,
         ),
-        SmallStatCard(
+        ReportCardForDashboard(
           label: "Total Orders",
           value: provider.totalOrders.toString(),
           icon: Icons.shopping_bag,
         ),
-        SmallStatCard(
+        ReportCardForDashboard(
           label: "Active Bookings",
           value: provider.activeBookings.toString(),
           icon: Icons.calendar_today,
         ),
-        SmallStatCard(
+        ReportCardForDashboard(
           label: "Avg. Order Value",
           value: formatCurrency(
             provider.totalOrders > 0

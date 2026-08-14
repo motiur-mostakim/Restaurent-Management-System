@@ -1,18 +1,24 @@
 import 'package:flutter/material.dart';
-import '../model/order_model.dart';
-import 'payment_option.dart';
+import 'payment_method_item_widget.dart'
+    show PaymentMethodItemWidget;
+import '../../../model/order_model.dart';
 
-class PaymentModal extends StatefulWidget {
+class PaymentMethodDialogWidget extends StatefulWidget {
   final OrderModel order;
   final Function(String) onComplete;
 
-  const PaymentModal({super.key, required this.order, required this.onComplete});
+  const PaymentMethodDialogWidget({
+    super.key,
+    required this.order,
+    required this.onComplete,
+  });
 
   @override
-  State<PaymentModal> createState() => _PaymentModalState();
+  State<PaymentMethodDialogWidget> createState() =>
+      _PaymentMethodDialogWidgetState();
 }
 
-class _PaymentModalState extends State<PaymentModal> {
+class _PaymentMethodDialogWidgetState extends State<PaymentMethodDialogWidget> {
   String step = 'method';
   String? selectedMethod;
   bool isProcessing = false;
@@ -30,7 +36,11 @@ class _PaymentModalState extends State<PaymentModal> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(40),
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 40, offset: const Offset(0, 20))
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              blurRadius: 40,
+              offset: const Offset(0, 20),
+            ),
           ],
         ),
         child: Column(
@@ -54,11 +64,20 @@ class _PaymentModalState extends State<PaymentModal> {
                     children: [
                       Text(
                         step == 'method' ? "Payment Method" : "Order Summary",
-                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: -0.5),
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                          letterSpacing: -0.5,
+                        ),
                       ),
                       Text(
                         "Table ${widget.order.tableNumber} • ৳${widget.order.totalAmount.toInt()}",
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white.withOpacity(0.5)),
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white.withOpacity(0.8),
+                        ),
                       ),
                     ],
                   ),
@@ -66,20 +85,27 @@ class _PaymentModalState extends State<PaymentModal> {
                     onTap: () => Navigator.pop(context),
                     child: Container(
                       padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(color: Colors.white.withOpacity(0.1), shape: BoxShape.circle),
-                      child: const Icon(Icons.close_rounded, size: 22, color: Colors.white),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.close_rounded,
+                        size: 22,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
-            
+
             Padding(
               padding: const EdgeInsets.fromLTRB(32, 32, 32, 40),
               child: Column(
                 children: [
                   if (step == 'method') ...[
-                    PaymentOption(
+                    PaymentMethodItemWidget(
                       icon: Icons.payments_rounded,
                       label: "Cash Collection",
                       subtitle: "Collect cash at the table",
@@ -87,7 +113,7 @@ class _PaymentModalState extends State<PaymentModal> {
                       onTap: () => setState(() => selectedMethod = 'cash'),
                     ),
                     const SizedBox(height: 16),
-                    PaymentOption(
+                    PaymentMethodItemWidget(
                       icon: Icons.credit_card_rounded,
                       label: "Card / POS",
                       subtitle: "Visa, Mastercard, etc.",
@@ -95,7 +121,7 @@ class _PaymentModalState extends State<PaymentModal> {
                       onTap: () => setState(() => selectedMethod = 'card'),
                     ),
                     const SizedBox(height: 16),
-                    PaymentOption(
+                    PaymentMethodItemWidget(
                       icon: Icons.qr_code_scanner_rounded,
                       label: "Mobile Wallet",
                       subtitle: "bKash, Nagad, etc.",
@@ -111,13 +137,21 @@ class _PaymentModalState extends State<PaymentModal> {
                         backgroundColor: const Color(0xFFFF4F18),
                         foregroundColor: Colors.white,
                         minimumSize: const Size(double.infinity, 64),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
                         elevation: 0,
                       ),
                       child: const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text("Review Receipt", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+                          Text(
+                            "Review Receipt",
+                            style: TextStyle(
+                              fontWeight: FontWeight.w900,
+                              fontSize: 16,
+                            ),
+                          ),
                           SizedBox(width: 12),
                           Icon(Icons.arrow_forward_rounded),
                         ],
@@ -137,10 +171,24 @@ class _PaymentModalState extends State<PaymentModal> {
                             (item) => Padding(
                               padding: const EdgeInsets.only(bottom: 12.0),
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text("${item.quantity}x ${item.name}", style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1E293B))),
-                                  Text("৳${(item.price * item.quantity).toInt()}", style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF1E293B))),
+                                  Text(
+                                    "${item.quantity}x ${item.name}",
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xFF1E293B),
+                                    ),
+                                  ),
+                                  Text(
+                                    "৳${(item.price * item.quantity).toInt()}",
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w900,
+                                      color: Color(0xFF1E293B),
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
@@ -149,10 +197,21 @@ class _PaymentModalState extends State<PaymentModal> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text("Total Received", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+                              const Text(
+                                "Total Received",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 16,
+                                ),
+                              ),
                               Text(
                                 "৳${widget.order.totalAmount.toInt()}",
-                                style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFFF4F18), fontSize: 28, letterSpacing: -1),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w900,
+                                  color: Color(0xFFFF4F18),
+                                  fontSize: 28,
+                                  letterSpacing: -1,
+                                ),
                               ),
                             ],
                           ),
@@ -172,17 +231,38 @@ class _PaymentModalState extends State<PaymentModal> {
                         backgroundColor: const Color(0xFF0F172A),
                         foregroundColor: Colors.white,
                         minimumSize: const Size(double.infinity, 64),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
                         elevation: 0,
                       ),
                       child: isProcessing
-                          ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3))
-                          : const Text("Send to Kitchen", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+                          ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 3,
+                              ),
+                            )
+                          : const Text(
+                              "Send to Kitchen",
+                              style: TextStyle(
+                                fontWeight: FontWeight.w900,
+                                fontSize: 16,
+                              ),
+                            ),
                     ),
                     const SizedBox(height: 12),
                     TextButton(
                       onPressed: () => setState(() => step = 'method'),
-                      child: const Text("Change Payment Method", style: TextStyle(color: Color(0xFF94A3B8), fontWeight: FontWeight.w800)),
+                      child: const Text(
+                        "Change Payment Method",
+                        style: TextStyle(
+                          color: Color(0xFF94A3B8),
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
                     ),
                   ],
                 ],

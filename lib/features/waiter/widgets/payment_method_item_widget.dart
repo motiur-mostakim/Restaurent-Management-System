@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 
-class PaymentOption extends StatelessWidget {
+class PaymentMethodItemWidget extends StatelessWidget {
   final IconData icon;
   final String label;
   final String subtitle;
   final bool isSelected;
   final VoidCallback onTap;
 
-  const PaymentOption({super.key,
+  const PaymentMethodItemWidget({
+    super.key,
     required this.icon,
     required this.label,
     required this.subtitle,
