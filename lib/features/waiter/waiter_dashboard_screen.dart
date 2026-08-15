@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:restaurant_management/features/admin/widgets/dashboard/filter_widget.dart';
 
 import '../../provider/waiterProvider.dart';
+import '../kitchen/widgets/dashboard/revenue_card_widget.dart';
 import 'widgets/report_card_for_waiter_dashboard.dart';
 import 'widgets/waiter_report_card_status_badge.dart';
 
@@ -37,12 +38,8 @@ class _WaiterDashboardScreenState extends State<WaiterDashboardScreen> {
     final filteredOrders = provider.filteredOrdersByDate;
 
     int totalOrders = filteredOrders.length;
-    int pendingOrders = filteredOrders
-        .where((o) => o.status == 'pending')
-        .length;
-    int deliveredOrders = filteredOrders
-        .where((o) => o.status == 'delivered')
-        .length;
+    int pendingOrders = filteredOrders.where((o) => o.status == 'pending').length;
+    int deliveredOrders = filteredOrders.where((o) => o.status == 'delivered').length;
     int readyOrders = filteredOrders.where((o) => o.status == 'ready').length;
     double totalSell = filteredOrders
         .where((o) => o.status == 'delivered')
@@ -76,45 +73,56 @@ class _WaiterDashboardScreenState extends State<WaiterDashboardScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            GridView.count(
-              crossAxisCount: 3,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              mainAxisSpacing: 12,
-              crossAxisSpacing: 12,
-              childAspectRatio: 0.92,
+            // Operational Overview (2x2 Grid using Rows)
+            Row(
               children: [
-                ReportCardForWaiterDashboard(
-                  title: "Ready",
-                  value: readyOrders.toString(),
-                  icon: Icons.restaurant_outlined,
-                  color: const Color(0xFF3B82F6),
+                Expanded(
+                  child: ReportCardForWaiterDashboard(
+                    title: "Ready",
+                    value: readyOrders.toString(),
+                    icon: Icons.restaurant_outlined,
+                    color: const Color(0xFF3B82F6),
+                  ),
                 ),
-                ReportCardForWaiterDashboard(
-                  title: "Pending",
-                  value: pendingOrders.toString(),
-                  icon: Icons.timer_outlined,
-                  color: const Color(0xFFF59E0B),
-                ),
-                ReportCardForWaiterDashboard(
-                  title: "Delivered",
-                  value: deliveredOrders.toString(),
-                  icon: Icons.check_circle_outline_rounded,
-                  color: const Color(0xFF10B981),
-                ),
-                ReportCardForWaiterDashboard(
-                  title: "${provider.dateFilter} Order",
-                  value: totalOrders.toString(),
-                  icon: Icons.shopping_bag_outlined,
-                  color: const Color(0xFF6366F1),
-                ),
-                ReportCardForWaiterDashboard(
-                  title: "Total Sell",
-                  value: formatCurrency(totalSell),
-                  icon: Icons.payments_outlined,
-                  color: const Color(0xFFFF4F18),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ReportCardForWaiterDashboard(
+                    title: "Pending",
+                    value: pendingOrders.toString(),
+                    icon: Icons.timer_outlined,
+                    color: const Color(0xFFF59E0B),
+                  ),
                 ),
               ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: ReportCardForWaiterDashboard(
+                    title: "Delivered",
+                    value: deliveredOrders.toString(),
+                    icon: Icons.check_circle_outline_rounded,
+                    color: const Color(0xFF10B981),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ReportCardForWaiterDashboard(
+                    title: "${provider.dateFilter} Order",
+                    value: totalOrders.toString(),
+                    icon: Icons.shopping_bag_outlined,
+                    color: const Color(0xFF6366F1),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            // Financial Summary
+            RevenueCardWidget(
+              value: formatCurrency(totalSell),
+              color: const Color(0xFFFF4F18),
+              title: "Total Sales",
             ),
             const SizedBox(height: 32),
             Row(

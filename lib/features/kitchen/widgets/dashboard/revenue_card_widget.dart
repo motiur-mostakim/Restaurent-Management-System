@@ -3,8 +3,14 @@ import 'package:flutter/material.dart';
 class RevenueCardWidget extends StatelessWidget {
   final String value;
   final Color color;
+  final String title;
 
-  const RevenueCardWidget({super.key, required this.value, required this.color});
+  const RevenueCardWidget({
+    super.key,
+    required this.value,
+    required this.color,
+    this.title = "PERIOD REVENUE",
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +29,7 @@ class RevenueCardWidget extends StatelessWidget {
               Icon(Icons.auto_graph_rounded, color: color, size: 28),
               const SizedBox(width: 16),
               Text(
-                "PERIOD REVENUE",
+                title.toUpperCase(),
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w900,
