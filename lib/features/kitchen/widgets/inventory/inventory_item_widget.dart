@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 import '../../../../model/menu_item.dart';
 import '../../../../provider/menu_provider.dart';
+import '../../../../provider/dashboard_provider.dart';
 
 class InventoryItemWidget extends StatelessWidget {
   final MenuItem item;
@@ -18,6 +20,12 @@ class InventoryItemWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final dashboardProvider = Provider.of<DashboardProvider>(context);
+    final vendor = dashboardProvider.vendors.cast().firstWhere(
+          (v) => v.id == item.vendorId,
+      orElse: () => null,
+    );
+
     String formatCurrency(double amount) {
       return NumberFormat.currency(
         symbol: '৳',
@@ -62,9 +70,9 @@ class InventoryItemWidget extends StatelessWidget {
                             : null,
                       ),
                       child: (item.image == null || item.image!.isEmpty)
-                          ? const Icon(
-                              Icons.restaurant_menu_rounded,
-                              color: Color(0xFFCBD5E1),
+                          ? Icon(
+                              vendor != null ? Icons.storefront_rounded : Icons.restaurant_menu_rounded,
+                              color: const Color(0xFFCBD5E1),
                               size: 30,
                             )
                           : null,
@@ -112,30 +120,26 @@ class InventoryItemWidget extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: item.vendorId == 'fast_food'
-                              ? const Color(0xFFFFF7ED)
-                              : const Color(0xFFEFF6FF),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          (item.vendorId == 'fast_food' ? 'Tasus' : 'NESCAFÉ')
-                              .toUpperCase(),
-                          style: TextStyle(
-                            fontSize: 9,
-                            color: item.vendorId == 'fast_food'
-                                ? const Color(0xFFC2410C)
-                                : const Color(0xFF1D4ED8),
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 0.5,
+                      if (vendor != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEFF6FF),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            vendor.name.toUpperCase(),
+                            style: const TextStyle(
+                              fontSize: 9,
+                              color: Color(0xFF1D4ED8),
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.5,
+                            ),
                           ),
                         ),
-                      ),
                     ],
                   ),
                 ),

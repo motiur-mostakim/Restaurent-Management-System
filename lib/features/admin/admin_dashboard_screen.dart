@@ -79,8 +79,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 padding: const EdgeInsets.all(20),
                 children: [
                   _buildStatCards(provider),
-                  const SizedBox(height: 24),
-                  _buildSalesChart(provider),
+                  if (provider.vendors.isNotEmpty) ...[
+                    const SizedBox(height: 24),
+                    _buildSalesChart(provider),
+                  ],
                   const SizedBox(height: 24),
                   RecentOrderWidgetForAdminDashboard(
                     provider: provider,

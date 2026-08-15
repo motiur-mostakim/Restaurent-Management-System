@@ -5,6 +5,7 @@ import '/features/admin/widgets/menu/menu_item_card_widget.dart';
 import 'widgets/menu/menu_item_model_widget.dart';
 import '../../model/menu_item.dart';
 import '../../provider/menu_provider.dart';
+import '../../provider/dashboard_provider.dart';
 
 class AdminMenuScreen extends StatefulWidget {
   const AdminMenuScreen({super.key});
@@ -21,9 +22,10 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(
-      () => Provider.of<MenuProvider>(context, listen: false).listenItems(),
-    );
+    Future.microtask(() {
+      Provider.of<MenuProvider>(context, listen: false).listenItems();
+      Provider.of<DashboardProvider>(context, listen: false).listenData();
+    });
   }
 
   String formatCurrency(double amount) {
@@ -75,6 +77,8 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<MenuProvider>(context);
+    final dashboardProvider = Provider.of<DashboardProvider>(context);
+    
     final filteredItems = provider.items.where((item) {
       final matchesSearch = item.name.toLowerCase().contains(
         searchQuery.toLowerCase(),
@@ -147,50 +151,76 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Container(
-                        height: 44,
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF1F5F9),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: DropdownButtonHideUnderline(
-                          child: DropdownButton<String>(
-                            value: filterVendor,
-                            icon: const Icon(
-                              Icons.keyboard_arrow_down_rounded,
-                              size: 20,
-                              color: Color(0xFF64748B),
+                      if (dashboardProvider.vendors.isNotEmpty) ...[
+                        const SizedBox(width: 12),
+                        Container(
+                          height: 44,
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF1F5F9),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<String>(
+                              value: filterVendor,
+                              icon: const Icon(
+                                Icons.keyboard_arrow_down_rounded,
+                                size: 20,
+                                color: Color(0xFF64748B),
+                              ),
+                              items: [
+                                const DropdownMenuItem(
+                                  value: 'all',
+                                  child: Text("All Vendors"),
+                                ),
+                                ...dashboardProvider.vendors.map((v) => DropdownMenuItem(
+                                  value: v.id,
+                                  child: Text(v.name),
+                                )),
+                              ],
+                              onChanged: (value) =>
+                                  setState(() => filterVendor = value!),
                             ),
-                            items: const [
-                              DropdownMenuItem(
-                                value: 'all',
-                                child: Text("All"),
-                              ),
-                              DropdownMenuItem(
-                                value: 'fast_food',
-                                child: Text("Tasus"),
-                              ),
-                              DropdownMenuItem(
-                                value: 'beverages',
-                                child: Text("NESCAFÉ"),
-                              ),
-                            ],
-                            onChanged: (value) =>
-                                setState(() => filterVendor = value!),
                           ),
                         ),
-                      ),
+                      ],
                     ],
                   ),
                 ),
                 Expanded(
                   child: filteredItems.isEmpty
-                      ? const Center(
-                          child: Text(
-                            "No items found",
-                            style: TextStyle(color: Color(0xFF64748B)),
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(
+                                Icons.restaurant_menu_outlined,
+                                size: 80,
+                                color: Color(0xFFE2E8F0),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                searchQuery.isEmpty ? "Your menu is empty" : "No items found",
+                                style: const TextStyle(
+                                  color: Color(0xFF64748B),
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                              ElevatedButton.icon(
+                                onPressed: () => _showItemModal(),
+                                icon: const Icon(Icons.add_rounded),
+                                label: const Text("Add First Item"),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: primaryColor,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                  elevation: 0,
+                                ),
+                              ),
+                            ],
                           ),
                         )
                       : ListView.builder(

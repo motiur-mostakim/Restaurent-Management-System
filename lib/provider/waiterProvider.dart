@@ -14,6 +14,7 @@ class WaiterProvider with ChangeNotifier {
   List<CartItem> cart = [];
   List<OrderModel> orders = [];
   List<VendorModel> vendors = [];
+  String? _restaurantId;
 
   String _activeVendor = 'all';
   String get activeVendor => _activeVendor;
@@ -66,9 +67,24 @@ class WaiterProvider with ChangeNotifier {
     return menuItems.where((item) => item.vendorId == _activeVendor).toList();
   }
 
-  void listenMenu() {
+  Future<void> _fetchRestaurantId() async {
+    if (_restaurantId != null) return;
+    final user = auth.currentUser;
+    if (user != null) {
+      final doc = await db.collection('users').doc(user.uid).get();
+      if (doc.exists) {
+        _restaurantId = doc.data()?['restaurantId'];
+      }
+    }
+  }
+
+  void listenMenu() async {
+    await _fetchRestaurantId();
+    if (_restaurantId == null) return;
+
     db
         .collection('menu_items')
+        .where('restaurantId', isEqualTo: _restaurantId)
         .where('available', isEqualTo: true)
         .snapshots()
         .listen((snapshot) {
@@ -80,8 +96,14 @@ class WaiterProvider with ChangeNotifier {
     });
   }
 
-  void listenVendors() {
-    db.collection('vendor').snapshots().listen((snapshot) {
+  void listenVendors() async {
+    await _fetchRestaurantId();
+    if (_restaurantId == null) return;
+
+    db.collection('vendor')
+      .where('restaurantId', isEqualTo: _restaurantId)
+      .snapshots()
+      .listen((snapshot) {
       vendors = snapshot.docs
           .map((doc) => VendorModel.fromFirestore(doc.id, doc.data()))
           .toList();
@@ -89,12 +111,16 @@ class WaiterProvider with ChangeNotifier {
     });
   }
 
-  void listenOrders() {
+  void listenOrders() async {
+    await _fetchRestaurantId();
+    if (_restaurantId == null) return;
+    
     final uid = auth.currentUser?.uid;
     if (uid == null) return;
 
     db
         .collection('orders')
+        .where('restaurantId', isEqualTo: _restaurantId)
         .where('waiterId', isEqualTo: uid)
         .snapshots()
         .listen((snapshot) {
@@ -154,6 +180,9 @@ class WaiterProvider with ChangeNotifier {
 
     if (cart.isEmpty) return;
 
+    await _fetchRestaurantId();
+    if (_restaurantId == null) return;
+
     isSubmitting = true;
     notifyListeners();
 
@@ -181,6 +210,7 @@ class WaiterProvider with ChangeNotifier {
 
       final orderData = newOrder.toMap();
       orderData['createdAt'] = FieldValue.serverTimestamp();
+      orderData['restaurantId'] = _restaurantId;
 
       await db.collection('orders').add(orderData);
 

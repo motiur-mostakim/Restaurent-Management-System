@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../../../model/menu_item.dart';
+import '../../../../provider/dashboard_provider.dart';
 import 'menu_item_model_widget.dart';
 
 class MenuAddDialogWidget extends State<MenuItemModelWidget> {
@@ -58,6 +60,12 @@ class MenuAddDialogWidget extends State<MenuItemModelWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final dashboardProvider = Provider.of<DashboardProvider>(context);
+    final vendors = dashboardProvider.vendors;
+    if (vendors.isNotEmpty && !vendors.any((v) => v.id == _vendorId)) {
+      _vendorId = vendors.first.id;
+    }
+
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       child: SingleChildScrollView(
@@ -113,40 +121,43 @@ class MenuAddDialogWidget extends State<MenuItemModelWidget> {
                       ],
                     ),
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const _ModalLabel("VENDOR"),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF8FAFC),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: const Color(0xFFE2E8F0)),
-                          ),
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<String>(
-                              isExpanded: true,
-                              value: _vendorId,
-                              items: const [
-                                DropdownMenuItem(
-                                  value: 'fast_food',
-                                  child: Text("Tasus"),
-                                ),
-                                DropdownMenuItem(
-                                  value: 'beverages',
-                                  child: Text("NESCAFÉ"),
-                                ),
-                              ],
-                              onChanged: (v) => setState(() => _vendorId = v!),
+                  if (vendors.isNotEmpty) ...[
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const _ModalLabel("VENDOR"),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF8FAFC),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: const Color(0xFFE2E8F0),
+                              ),
+                            ),
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<String>(
+                                isExpanded: true,
+                                value: _vendorId,
+                                items: vendors
+                                    .map(
+                                      (v) => DropdownMenuItem(
+                                        value: v.id,
+                                        child: Text(v.name),
+                                      ),
+                                    )
+                                    .toList(),
+                                onChanged: (v) =>
+                                    setState(() => _vendorId = v!),
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
+                  ],
                 ],
               ),
               const SizedBox(height: 20),
@@ -193,8 +204,8 @@ class MenuAddDialogWidget extends State<MenuItemModelWidget> {
                           id: widget.item?.id ?? '',
                           name: _nameController.text,
                           price: double.tryParse(_priceController.text) ?? 0,
-                          vendorId: _vendorId,
-                          category: _vendorId,
+                          vendorId: vendors.isEmpty ? 'default' : _vendorId,
+                          category: vendors.isEmpty ? 'general' : _vendorId,
                           available: _available,
                           image: _imageController.text,
                         );

@@ -1,10 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../model/user_model.dart';
+import '../../provider/dashboard_provider.dart';
 import '../../utils/widgets/logout_dialog_widget.dart';
 import '../profile_details_screen/profile_details_screen.dart';
 import 'user_management_screen.dart';
+import 'vendor_management/vendor_management_screen.dart';
 import 'widgets/profile/profile_menu_item_widget.dart';
 
 class AdminProfileSection extends StatefulWidget {
@@ -18,6 +21,7 @@ class _AdminProfileSectionState extends State<AdminProfileSection> {
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
+    final vendors = Provider.of<DashboardProvider>(context).vendors;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -217,7 +221,61 @@ class _AdminProfileSectionState extends State<AdminProfileSection> {
                           ],
                         ),
                         const SizedBox(height: 32),
-                        _buildSectionHeader("MANAGEMENT"),
+                        _buildSectionHeader("RESTAURANT MANAGEMENT"),
+                        const SizedBox(height: 16),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(28),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.04),
+                                blurRadius: 24,
+                                offset: const Offset(0, 12),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            children: [
+                              ProfileMenuItemWidget(
+                                icon: Icons.storefront_rounded,
+                                title: "Vendor System",
+                                subtitle: "Manage multi-vendor outlets and stalls",
+                                onTap: () {
+                                  if (userData?.restaurantId != null) {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => VendorManagementScreen(
+                                          restaurantId: userData!.restaurantId!,
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                },
+                              ),
+                              _buildItemDivider(),
+                              ProfileMenuItemWidget(
+                                icon: Icons.person_add_rounded,
+                                title: "Staff Credentials",
+                                subtitle: vendors.isEmpty
+                                    ? "Create waiter and kitchen accounts"
+                                    : "Create waiter and vendor-wise kitchen accounts",
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                      const UserManagementScreen(),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+                        _buildSectionHeader("ACCOUNT SETTINGS"),
                         const SizedBox(height: 16),
                         Container(
                           decoration: BoxDecoration(
@@ -245,21 +303,6 @@ class _AdminProfileSectionState extends State<AdminProfileSection> {
                                       const ProfileDetailsScreen(),
                                     ),
                                   ).then((_) => setState(() {}));
-                                },
-                              ),
-                              _buildItemDivider(),
-                              ProfileMenuItemWidget(
-                                icon: Icons.person_add_rounded,
-                                title: "Staff Credentials",
-                                subtitle: "Create waiter and vendor accounts",
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                      const UserManagementScreen(),
-                                    ),
-                                  );
                                 },
                               ),
                               _buildItemDivider(),
@@ -317,9 +360,9 @@ class _AdminProfileSectionState extends State<AdminProfileSection> {
                                   color: const Color(0xFFE2E8F0),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
-                                child: const Text(
-                                  "THE CIRCLE CAFE",
-                                  style: TextStyle(
+                                child: Text(
+                                  (userData?.restaurantName ?? "THE CIRCLE CAFE").toUpperCase(),
+                                  style: const TextStyle(
                                     color: Color(0xFF64748B),
                                     fontSize: 10,
                                     fontWeight: FontWeight.w900,

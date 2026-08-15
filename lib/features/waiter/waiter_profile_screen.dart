@@ -275,7 +275,42 @@ class WaiterProfileScreen extends StatelessWidget {
                             onTap: () => showLogoutDialog(context),
                           ),
                         ),
-                        const SizedBox(height: 60),
+                        const SizedBox(height: 50),
+                        Center(
+                          child: Column(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFE2E8F0),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  (userData?.restaurantName ?? "THE CIRCLE CAFE").toUpperCase(),
+                                  style: const TextStyle(
+                                    color: Color(0xFF64748B),
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 3,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              const Text(
+                                "Build 2024.1.0 (PRO)",
+                                style: TextStyle(
+                                  color: Color(0xFFCBD5E1),
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 40),
                       ],
                     ),
                   ),

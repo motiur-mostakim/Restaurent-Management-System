@@ -7,10 +7,62 @@ class VendorPerformanceWidget extends StatelessWidget {
   final DashboardProvider provider;
   final Color primaryColor;
   final Color secondaryColor;
-  const VendorPerformanceWidget({super.key, required this.provider, required this.primaryColor, required this.secondaryColor});
+
+  const VendorPerformanceWidget({
+    super.key,
+    required this.provider,
+    required this.primaryColor,
+    required this.secondaryColor,
+  });
 
   @override
   Widget build(BuildContext context) {
+    if (provider.vendors.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+        ),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: primaryColor.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.storefront_rounded,
+                color: primaryColor,
+                size: 32,
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              "Vendor System Inactive",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF0F172A),
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              "You haven't added any vendors yet. Create vendors from your profile to track performance per outlet.",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Color(0xFF64748B),
+                fontSize: 13,
+                height: 1.5,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     Color getVendorColor(int index) {
       final colors = [
         primaryColor,
@@ -22,6 +74,7 @@ class VendorPerformanceWidget extends StatelessWidget {
       ];
       return colors[index % colors.length];
     }
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -41,12 +94,14 @@ class VendorPerformanceWidget extends StatelessWidget {
             final vendor = provider.vendors[index];
             final revenue = provider.vendorRevenues[vendor.id] ?? 0;
             return Padding(
-              padding: EdgeInsets.only(bottom: index == provider.vendors.length - 1 ? 0 : 20),
+              padding: EdgeInsets.only(
+                bottom: index == provider.vendors.length - 1 ? 0 : 20,
+              ),
               child: VendorPerformanceProgressWidget(
                 name: vendor.name,
                 revenue: revenue,
                 total: provider.totalSales,
-                icon: vendor.icon == '🍔' ? Icons.restaurant : Icons.coffee,
+                icon: Icons.restaurant,
                 color: getVendorColor(index),
               ),
             );

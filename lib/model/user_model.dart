@@ -8,6 +8,8 @@ class UserModel {
   final String? designation;
   final String? phone;
   final String? vendorId;
+  final String? restaurantName;
+  final String? restaurantId;
   final DateTime? updatedAt;
 
   UserModel({
@@ -18,6 +20,8 @@ class UserModel {
     this.designation,
     this.phone,
     this.vendorId,
+    this.restaurantName,
+    this.restaurantId,
     this.updatedAt,
   });
 
@@ -31,6 +35,8 @@ class UserModel {
       designation: data['designation'],
       phone: data['phone'],
       vendorId: data['vendorId'],
+      restaurantName: data['restaurantName'],
+      restaurantId: data['restaurantId'],
       updatedAt: (data['updatedAt'] as Timestamp?)?.toDate(),
     );
   }
@@ -43,6 +49,8 @@ class UserModel {
       'designation': designation,
       'phone': phone,
       'vendorId': vendorId,
+      'restaurantName': restaurantName,
+      'restaurantId': restaurantId,
       'updatedAt': FieldValue.serverTimestamp(),
     };
   }

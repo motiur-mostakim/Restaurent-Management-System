@@ -37,31 +37,40 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SizedBox(
-              width: 48,
-              height: 48,
-              child: CircularProgressIndicator(
-                strokeWidth: 4,
-                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF4F18)),
-              ),
+            Icon(
+              Icons.restaurant_menu_rounded,
+              size: 80,
+              color: Color(0xFFFF4F18),
             ),
             SizedBox(height: 24),
             Text(
-              "THE CIRCLE CAFE",
+              "RESTRO MANAGER",
+              textAlign: TextAlign.center,
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
-                letterSpacing: -1,
+                letterSpacing: 2,
               ),
             ),
+            SizedBox(height: 8),
             Text(
-              "CAFE & COMMUNITY SPACE",
+              "ULTIMATE MANAGEMENT SOLUTION",
+              textAlign: TextAlign.center,
               style: TextStyle(
                 color: Color(0xFF64748B),
                 fontSize: 10,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 3,
+              ),
+            ),
+            SizedBox(height: 48),
+            SizedBox(
+              width: 32,
+              height: 32,
+              child: CircularProgressIndicator(
+                strokeWidth: 3,
+                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF4F18)),
               ),
             ),
           ],

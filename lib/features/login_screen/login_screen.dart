@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:google_sign_in/google_sign_in.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 import '../../model/user_model.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -16,6 +17,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   final _nameController = TextEditingController();
   final _designationController = TextEditingController();
+  final _restaurantNameController = TextEditingController();
 
   bool _isLoading = false;
   bool _isLogin = true;
@@ -30,18 +32,24 @@ class _LoginScreenState extends State<LoginScreen> {
     _passwordController.dispose();
     _nameController.dispose();
     _designationController.dispose();
+    _restaurantNameController.dispose();
     super.dispose();
   }
 
   Future<void> _handleEmailAuth() async {
-    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+    final email = _emailController.text.trim().toLowerCase();
+    final password = _passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
       setState(() => _error = "Please fill in all fields");
       return;
     }
 
     if (!_isLogin &&
-        (_nameController.text.isEmpty || _designationController.text.isEmpty)) {
-      setState(() => _error = "Please fill in Name and Designation");
+        (_nameController.text.isEmpty || 
+         _designationController.text.isEmpty ||
+         _restaurantNameController.text.isEmpty)) {
+      setState(() => _error = "Please fill in all registration fields");
       return;
     }
 
@@ -50,29 +58,80 @@ class _LoginScreenState extends State<LoginScreen> {
       _error = null;
     });
 
+    User? currentUser;
+
     try {
-      UserCredential cred;
       if (_isLogin) {
-        cred = await _auth.signInWithEmailAndPassword(
-          email: _emailController.text.trim(),
-          password: _passwordController.text.trim(),
+        // লগইন করার সময়
+        final cred = await _auth.signInWithEmailAndPassword(
+          email: email,
+          password: password,
         );
+        currentUser = cred.user;
+        
+        // Firestore থেকে তথ্য চেক করা
+        final userDoc = await _db.collection('users').doc(cred.user!.uid).get();
+        if (userDoc.exists) {
+          final userData = UserModel.fromFirestore(userDoc);
+          final prefs = await SharedPreferences.getInstance();
+          if (userData.restaurantName != null) {
+            await prefs.setString('restaurant_name', userData.restaurantName!);
+          }
+          if (userData.restaurantId != null) {
+            await prefs.setString('restaurant_id', userData.restaurantId!);
+          }
+        } else {
+          // যদি Auth-এ ইউজার থাকে কিন্তু Firestore-এ ডাটা না থাকে
+          await _auth.signOut();
+          throw FirebaseAuthException(
+            code: 'user-not-found',
+            message: "User profile not found. Please register again.",
+          );
+        }
       } else {
-        cred = await _auth.createUserWithEmailAndPassword(
-          email: _emailController.text.trim(),
-          password: _passwordController.text.trim(),
+        // রেজিস্ট্রেশন করার সময়
+        final cred = await _auth.createUserWithEmailAndPassword(
+          email: email,
+          password: password,
         );
+        currentUser = cred.user;
+
+        final restaurantId = const Uuid().v4();
+        final restaurantName = _restaurantNameController.text.trim();
+
+        // রেস্টুরেন্ট ডাটা সেভ
+        await _db.collection('restaurants').doc(restaurantId).set({
+          'name': restaurantName,
+          'ownerUid': cred.user!.uid,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+
+        // ইউজার প্রোফাইল সেভ (super_admin হিসেবে)
         await _syncUserToFirestore(
           cred.user!,
-          'admin',
+          'super_admin',
           name: _nameController.text.trim(),
           designation: _designationController.text.trim(),
+          restaurantName: restaurantName,
+          restaurantId: restaurantId,
         );
+        
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('restaurant_name', restaurantName);
+        await prefs.setString('restaurant_id', restaurantId);
       }
     } on FirebaseAuthException catch (e) {
       setState(() => _error = e.message);
+      // যদি রেজিস্ট্রেশন অসম্পূর্ণ থাকে তবে Auth থেকে ইউজার রিমুভ করা
+      if (!_isLogin && currentUser != null) {
+        try {
+          await currentUser.delete();
+        } catch (_) {}
+      }
+      await _auth.signOut();
     } catch (e) {
-      setState(() => _error = "Authentication failed. Please try again.");
+      setState(() => _error = "Authentication failed: ${e.toString()}");
+      await _auth.signOut();
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -83,14 +142,18 @@ class _LoginScreenState extends State<LoginScreen> {
     String role, {
     String? name,
     String? designation,
+    String? restaurantName,
+    String? restaurantId,
   }) async {
     final userModel = UserModel(
       uid: user.uid,
-      email: user.email ?? '',
+      email: user.email?.toLowerCase() ?? '',
       name:
           name ?? user.displayName ?? role[0].toUpperCase() + role.substring(1),
       role: role,
       designation: designation,
+      restaurantName: restaurantName,
+      restaurantId: restaurantId,
       vendorId: role == 'vendor_staff' ? 'fast_food' : null,
     );
 
@@ -119,7 +182,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 20),
                 Text(
-                  _isLogin ? "Welcome Back" : "Get Started",
+                  _isLogin ? "Welcome Back" : "Register Restaurant",
                   style: const TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
@@ -130,7 +193,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 Text(
                   _isLogin
                       ? "Sign in to continue your work"
-                      : "Create an admin account to begin",
+                      : "Register your restaurant as Super Admin",
                   style: const TextStyle(
                     color: Color(0xFF64748B),
                     fontSize: 14,
@@ -139,10 +202,19 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 80),
                 if (!_isLogin) ...[
                   TextField(
+                    controller: _restaurantNameController,
+                    style: const TextStyle(color: Color(0xFF0F172A)),
+                    decoration: _inputDecoration(
+                      "Restaurant Name",
+                      Icons.restaurant,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
                     controller: _nameController,
                     style: const TextStyle(color: Color(0xFF0F172A)),
                     decoration: _inputDecoration(
-                      "Full Name",
+                      "Owner Name",
                       Icons.person_outline,
                     ),
                   ),
@@ -151,7 +223,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     controller: _designationController,
                     style: const TextStyle(color: Color(0xFF0F172A)),
                     decoration: _inputDecoration(
-                      "Designation",
+                      "Designation (e.g. CEO)",
                       Icons.work_outline,
                     ),
                   ),
@@ -161,6 +233,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 TextField(
                   controller: _emailController,
                   style: const TextStyle(color: Color(0xFF0F172A)),
+                  keyboardType: TextInputType.emailAddress,
                   decoration: _inputDecoration(
                     "Email Address",
                     Icons.email_outlined,
@@ -216,7 +289,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           )
                         : Text(
-                            _isLogin ? "Sign In" : "Create Admin Account",
+                            _isLogin ? "Sign In" : "Register & Start",
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -238,11 +311,11 @@ class _LoginScreenState extends State<LoginScreen> {
                       children: [
                         TextSpan(
                           text: _isLogin
-                              ? "Don't have an account? "
-                              : "Already have an account? ",
+                              ? "Need a restaurant account? "
+                              : "Already registered? ",
                         ),
                         TextSpan(
-                          text: _isLogin ? "Register as Admin" : "Sign In",
+                          text: _isLogin ? "Register Now" : "Sign In",
                           style: const TextStyle(
                             color: Color(0xFFFF4F18),
                             fontWeight: FontWeight.bold,

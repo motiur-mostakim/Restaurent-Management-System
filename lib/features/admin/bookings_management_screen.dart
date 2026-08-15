@@ -20,10 +20,9 @@ class _BookingsManagementScreenState extends State<BookingsManagementScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(
-      () =>
-          Provider.of<BookingProvider>(context, listen: false).listenBookings(),
-    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<BookingProvider>(context, listen: false).listenBookings();
+    });
   }
 
   String formatCurrency(double amount) {
@@ -49,11 +48,10 @@ class _BookingsManagementScreenState extends State<BookingsManagementScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<BookingProvider>(context);
-
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
+        scrolledUnderElevation: 0,
         title: const Text(
           "Bookings",
           style: TextStyle(
@@ -79,9 +77,17 @@ class _BookingsManagementScreenState extends State<BookingsManagementScreen> {
           ),
         ],
       ),
-      body: provider.isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
+      body: Consumer<BookingProvider>(
+        builder: (context, provider, child) {
+          if (provider.isLoading && provider.bookings.isEmpty) {
+            return const Center(
+              child: CircularProgressIndicator(color: Color(0xFFFF4F18)),
+            );
+          }
+
+          return RefreshIndicator(
+            onRefresh: () async => provider.listenBookings(),
+            child: Column(
               children: [
                 Container(
                   width: double.infinity,
@@ -99,24 +105,69 @@ class _BookingsManagementScreenState extends State<BookingsManagementScreen> {
                 ),
                 Expanded(
                   child: provider.bookings.isEmpty
-                      ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.event_busy,
-                                size: 64,
-                                color: Colors.grey[300],
-                              ),
-                              const SizedBox(height: 16),
-                              const Text(
-                                "No bookings found",
-                                style: TextStyle(
-                                  color: Color(0xFF94A3B8),
-                                  fontSize: 16,
+                      ? SingleChildScrollView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          child: Container(
+                            height: MediaQuery.of(context).size.height * 0.7,
+                            alignment: Alignment.center,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(24),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    shape: BoxShape.circle,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.05),
+                                        blurRadius: 20,
+                                      ),
+                                    ],
+                                  ),
+                                  child: const Icon(
+                                    Icons.event_available_outlined,
+                                    size: 80,
+                                    color: Color(0xFFE2E8F0),
+                                  ),
                                 ),
-                              ),
-                            ],
+                                const SizedBox(height: 24),
+                                const Text(
+                                  "No Event Found",
+                                  style: TextStyle(
+                                    color: Color(0xFF0F172A),
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                const Text(
+                                  "Start by adding a new event booking",
+                                  style: TextStyle(
+                                    color: Color(0xFF64748B),
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                const SizedBox(height: 32),
+                                ElevatedButton.icon(
+                                  onPressed: () => _showBookingModal(),
+                                  icon: const Icon(Icons.add_rounded),
+                                  label: const Text("Add New Booking"),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: primaryColor,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 24,
+                                      vertical: 14,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    elevation: 0,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         )
                       : ListView.builder(
@@ -136,6 +187,9 @@ class _BookingsManagementScreenState extends State<BookingsManagementScreen> {
                 ),
               ],
             ),
+          );
+        },
+      ),
     );
   }
 }
