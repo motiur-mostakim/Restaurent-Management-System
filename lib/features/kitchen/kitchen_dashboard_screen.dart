@@ -7,7 +7,6 @@ import 'widgets/dashboard/section_header_widget.dart';
 import '../../provider/kitchen_provider.dart';
 import '../../provider/waiterProvider.dart';
 import '../../provider/menu_provider.dart';
-import '../../model/vendor_model.dart';
 import '../waiter/widgets/report_card_for_waiter_dashboard.dart';
 import 'widgets/dashboard/live_order_card_widget.dart';
 import 'widgets/dashboard/revenue_card_widget.dart' show RevenueCardWidget;
@@ -52,11 +51,6 @@ class _KitchenDashboardScreenState extends State<KitchenDashboardScreen> {
           provider.vendorType.isEmpty || item.vendorId == provider.vendorType;
       return matchesVendor && !item.available;
     }).length;
-
-    List<VendorModel> displayVendors = [
-      VendorModel(id: '', name: 'All Stations', icon: '🏢'),
-      ...waiterProvider.vendors,
-    ];
 
     return Scaffold(
       backgroundColor: surfaceColor,

@@ -67,12 +67,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           : RefreshIndicator(
               onRefresh: () async => provider.listenData(),
               child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 15,
+                ),
                 children: [
                   _buildWelcomeHeader(provider),
                   const SizedBox(height: 35),
-
-                  // 1. Operational Overview
                   SectionHeaderWidget(
                     title: "OPERATIONAL OVERVIEW",
                     primaryColor: primaryColor,
@@ -80,8 +81,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   const SizedBox(height: 16),
                   _buildStatCards(provider),
                   const SizedBox(height: 35),
-
-                  // 2. Financial Summary
                   SectionHeaderWidget(
                     title: "FINANCIAL SUMMARY",
                     primaryColor: primaryColor,
@@ -94,8 +93,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   const SizedBox(height: 12),
                   _buildFinancialBreakdown(provider),
                   const SizedBox(height: 35),
-
-                  // 3. Top Selling Items
                   SectionHeaderWidget(
                     title: "TOP SELLING ITEMS",
                     primaryColor: primaryColor,
@@ -103,14 +100,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   const SizedBox(height: 16),
                   _buildTopSellingItems(provider),
                   const SizedBox(height: 35),
-
-                  // 4. Vendor Performance & Charts
                   if (provider.vendors.isNotEmpty) ...[
                     _buildSalesChart(provider),
                     const SizedBox(height: 35),
                   ],
-
-                  // 5. Recent Orders
                   RecentOrderWidgetForAdminDashboard(
                     provider: provider,
                     primaryColor: primaryColor,
@@ -123,7 +116,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   }
 
   Widget _buildWelcomeHeader(DashboardProvider provider) {
-    String formattedDate = DateFormat('EEEE, d MMMM yyyy').format(DateTime.now());
+    String formattedDate = DateFormat(
+      'EEEE, d MMMM yyyy',
+    ).format(DateTime.now());
 
     return Container(
       width: double.infinity,
@@ -199,7 +194,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.calendar_today_outlined, size: 14, color: Colors.white),
+                const Icon(
+                  Icons.calendar_today_outlined,
+                  size: 14,
+                  color: Colors.white,
+                ),
                 const SizedBox(width: 8),
                 Text(
                   formattedDate,
@@ -289,7 +288,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         itemBuilder: (context, index) {
           final item = provider.topSellingItems[index];
           return ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: 5,
+            ),
             leading: CircleAvatar(
               backgroundColor: primaryColor.withOpacity(0.1),
               child: Text(

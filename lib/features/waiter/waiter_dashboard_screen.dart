@@ -73,7 +73,6 @@ class _WaiterDashboardScreenState extends State<WaiterDashboardScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Operational Overview (2x2 Grid using Rows)
             Row(
               children: [
                 Expanded(
@@ -118,7 +117,6 @@ class _WaiterDashboardScreenState extends State<WaiterDashboardScreen> {
               ],
             ),
             const SizedBox(height: 12),
-            // Financial Summary
             RevenueCardWidget(
               value: formatCurrency(totalSell),
               color: const Color(0xFFFF4F18),
