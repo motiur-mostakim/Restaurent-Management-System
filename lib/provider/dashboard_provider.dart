@@ -8,22 +8,29 @@ import '../model/vendor_model.dart';
 
 class DashboardProvider with ChangeNotifier {
   double totalSales = 0;
+  double cashSales = 0;
+  double cardSales = 0;
+  double mobileBankingSales = 0;
   int totalOrders = 0;
   List<VendorModel> vendors = [];
   Map<String, double> vendorRevenues = {};
   Map<String, int> vendorOrdersCount = {};
+  Map<String, int> itemSalesCount = {};
+  List<MapEntry<String, int>> topSellingItems = [];
 
   int activeBookings = 0;
   int totalMenuItems = 0;
   bool isLoading = true;
   String _dateFilter = 'All';
   String? _restaurantId;
+  String? _restaurantName;
 
   List<OrderModel> recentOrders = [];
 
   final FirebaseFirestore db = FirebaseFirestore.instance;
 
   String get dateFilter => _dateFilter;
+  String? get restaurantName => _restaurantName;
 
   void setDateFilter(String filter) {
     _dateFilter = filter;
@@ -61,6 +68,7 @@ class DashboardProvider with ChangeNotifier {
     final userDoc = await db.collection('users').doc(user.uid).get();
     if (userDoc.exists) {
       _restaurantId = userDoc.data()?['restaurantId'];
+      _restaurantName = userDoc.data()?['restaurantName'];
     }
 
     if (_restaurantId == null) {
@@ -125,9 +133,14 @@ class DashboardProvider with ChangeNotifier {
         .get();
     
     double sales = 0;
+    double cash = 0;
+    double card = 0;
+    double mobile = 0;
     int ordersCount = 0;
     Map<String, double> revenues = {};
     Map<String, int> counts = {};
+    Map<String, int> itemsCount = {};
+
     for (var v in vendors) {
       revenues[v.id] = 0;
       counts[v.id] = 0;
@@ -145,10 +158,27 @@ class DashboardProvider with ChangeNotifier {
       filteredOrders.add(order);
       sales += order.totalAmount;
       ordersCount++;
+
+      final method = order.paymentMethod?.toLowerCase() ?? '';
+      if (method == 'cash') {
+        cash += order.totalAmount;
+      } else if (method == 'card') {
+        card += order.totalAmount;
+      } else if (method.contains('bkash') || 
+                 method.contains('nagad') || 
+                 method.contains('rocket') || 
+                 method.contains('mobile') || 
+                 method.contains('online')) {
+        mobile += order.totalAmount;
+      } else {
+        mobile += order.totalAmount;
+      }
       
       Set<String> orderVendors = {};
 
       for (var item in order.items) {
+        itemsCount[item.name] = (itemsCount[item.name] ?? 0) + item.quantity;
+        
         if (revenues.containsKey(item.vendorId)) {
           revenues[item.vendorId] = (revenues[item.vendorId] ?? 0) + (item.price * item.quantity);
           orderVendors.add(item.vendorId);
@@ -160,9 +190,17 @@ class DashboardProvider with ChangeNotifier {
     }
 
     totalSales = sales;
+    cashSales = cash;
+    cardSales = card;
+    mobileBankingSales = mobile;
     totalOrders = ordersCount;
     vendorRevenues = revenues;
     vendorOrdersCount = counts;
+    itemSalesCount = itemsCount;
+    
+    var sortedItems = itemsCount.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    topSellingItems = sortedItems.take(5).toList();
 
     filteredOrders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     recentOrders = filteredOrders.take(5).toList();
