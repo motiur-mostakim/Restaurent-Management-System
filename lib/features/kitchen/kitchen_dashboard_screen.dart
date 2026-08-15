@@ -43,7 +43,6 @@ class _KitchenDashboardScreenState extends State<KitchenDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<KitchenProvider>(context);
-    final waiterProvider = Provider.of<WaiterProvider>(context);
     final menuProvider = Provider.of<MenuProvider>(context);
 
     final outOfStockCount = menuProvider.items.where((item) {
